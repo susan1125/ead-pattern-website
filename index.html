@@ -540,6 +540,10 @@
         <input type="checkbox" id="removeBgToggle" style="width:16px;height:16px;cursor:pointer;">
         去背景
       </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
+        <input type="checkbox" id="keepRatioToggle" style="width:16px;height:16px;cursor:pointer;">
+        保持比例
+      </label>
       <select id="bgTolerance" style="padding:4px 6px;border:2px solid #e2e8f0;border-radius:14px;font-size:11px;background:#fff;cursor:pointer;display:none;">
         <option value="30">低</option>
         <option value="50" selected>中</option>
@@ -1043,6 +1047,7 @@
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
   const removeBgToggle = document.getElementById('removeBgToggle');
+  const keepRatioToggle = document.getElementById('keepRatioToggle');
   const bgTolerance = document.getElementById('bgTolerance');
   const gridLineColor = document.getElementById('gridLineColor');
   const majorGridPalette = document.getElementById('majorGridPalette');
@@ -1107,13 +1112,13 @@
     if (currentImage) generatePattern();
   });
   zoomLevel.addEventListener('change', () => {
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.cols, currentGridData.rows);
   });
   gridLineColor.addEventListener('input', () => {
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.cols, currentGridData.rows);
   });
   borderColor.addEventListener('input', () => {
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.cols, currentGridData.rows);
   });
   // 大格线调色盘
   const MAJOR_GRID_PRESETS = [0, 5, 10, 15, 20, 25, 'custom'];
@@ -1142,7 +1147,7 @@
         b.style.background = pv === v ? '#eef2ff' : '#fff';
         b.style.color = pv === v ? '#6366f1' : '#64748b';
       });
-      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.cols, currentGridData.rows);
     });
     majorGridPalette.appendChild(btn);
   });
@@ -1154,7 +1159,7 @@
   }
 
   majorGridCustom.addEventListener('input', () => {
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.cols, currentGridData.rows);
   });
 
   // 大格线颜色预设 + HSV滑块
@@ -1170,7 +1175,7 @@
     dot.addEventListener('click',()=>{
       activeMajorColor=c;majorGridColorBtn.style.color=c;majorGridHSV.style.display='none';
       majorGridColorPalette.querySelectorAll('span').forEach((d,j)=>d.style.boxShadow=MAJOR_COLORS[j]===c?'0 0 0 3px rgba(99,102,241,.4)':'none');
-      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
+      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.cols, currentGridData.rows);
     });
     majorGridColorPalette.appendChild(dot);
   });
@@ -1205,7 +1210,7 @@
         gridLineColor.value=c;
       }
       swatchOverlay.classList.add('hidden');
-      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
+      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.cols, currentGridData.rows);
     });
     swatchGrid.appendChild(cell);
   });
@@ -1234,7 +1239,7 @@
   [majorH,majorS,majorV].forEach(sl=>sl.addEventListener('input',()=>{
     activeMajorColor=hsvToHex(Number(majorH.value),Number(majorS.value),Number(majorV.value));
     majorGridColorBtn.style.color=activeMajorColor;majorGridColorPalette.querySelectorAll('span').forEach(d=>d.style.boxShadow='none');
-    if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
+    if(currentGridData)renderGrid(currentGridData.grid,currentGridData.cols, currentGridData.rows);
   }));
 
   // 色板切换
@@ -1380,19 +1385,28 @@
   function generatePattern() {
     if (!currentImage) return;
 
-    const N = currentGridSize;
     const img = currentImage;
+    const imgRatio = img.width / img.height;
+    let cols, rows;
+    if (keepRatioToggle.checked) {
+      // 保持原图比例：长边 = currentGridSize，短边按比例
+      if (imgRatio >= 1) { cols = currentGridSize; rows = Math.max(2, Math.round(currentGridSize / imgRatio)); }
+      else { rows = currentGridSize; cols = Math.max(2, Math.round(currentGridSize * imgRatio)); }
+    } else {
+      cols = currentGridSize; rows = currentGridSize;
+    }
 
-    // 步骤1：将图片缩放至 N×N，提取每个像素颜色
+    // 步骤1：将图片缩放至 cols×rows
     const offCanvas = document.createElement('canvas');
-    offCanvas.width = N;
-    offCanvas.height = N;
+    offCanvas.width = cols;
+    offCanvas.height = rows;
     const offCtx = offCanvas.getContext('2d');
     // 使用 imageSmoothingEnabled 获得更准确的缩放
     offCtx.imageSmoothingEnabled = true;
     offCtx.imageSmoothingQuality = 'high';
-    offCtx.drawImage(img, 0, 0, N, N);
-    const imageData = offCtx.getImageData(0, 0, N, N);
+    offCtx.drawImage(img, 0, 0, cols, rows);
+    const imageData = offCtx.getImageData(0, 0, cols, rows);
+    const totalCells = cols * rows;
 
     // 步骤2：将每个像素映射到最接近的拼豆色（Floyd-Steinberg 抖动可选）
     const grid = [];
@@ -1401,11 +1415,11 @@
     const useDither = ditherToggle.checked;
 
     // 复制像素数据到浮点数组（用于误差扩散）
-    const srcR = new Float32Array(N * N);
-    const srcG = new Float32Array(N * N);
-    const srcB = new Float32Array(N * N);
+    const srcR = new Float32Array(totalCells);
+    const srcG = new Float32Array(totalCells);
+    const srcB = new Float32Array(totalCells);
 
-    for (let i = 0; i < N * N; i++) {
+    for (let i = 0; i < totalCells; i++) {
       const idx = i * 4;
       const a = pixels[idx + 3];
       if (a < 128) {
@@ -1422,11 +1436,9 @@
     if (removeBgToggle.checked) {
       bgTol = parseInt(bgTolerance.value);
       const edgePixels = [];
-      for (let i = 0; i < N; i++) {
-        // 上下边
-        [i, (N-1)*N + i, i*N, i*N + N - 1].forEach(idx => {
-          if (idx < N*N) edgePixels.push([srcR[idx], srcG[idx], srcB[idx]]);
-        });
+      for (let i = 0; i < Math.max(cols, rows); i++) {
+        if (i < cols) { const t=i,b=(rows-1)*cols+i; edgePixels.push([srcR[t],srcG[t],srcB[t]],[srcR[b],srcG[b],srcB[b]]); }
+        if (i < rows) { const l=i*cols,r=i*cols+cols-1; edgePixels.push([srcR[l],srcG[l],srcB[l]],[srcR[r],srcG[r],srcB[r]]); }
       }
       // 找最常见的边缘色
       const colorMap = new Map();
@@ -1439,10 +1451,10 @@
       [bgR, bgG, bgB] = bestKey.split(',').map(Number);
     }
 
-    for (let row = 0; row < N; row++) {
+    for (let row = 0; row < rows; row++) {
       const rowData = [];
-      for (let col = 0; col < N; col++) {
-        const i = row * N + col;
+      for (let c = 0; c < cols; c++) {
+        const i = row * cols + c;
         let rr = Math.max(0, Math.min(255, Math.round(srcR[i])));
         let gg = Math.max(0, Math.min(255, Math.round(srcG[i])));
         let bb = Math.max(0, Math.min(255, Math.round(srcB[i])));
@@ -1465,25 +1477,25 @@
           const errG = gg - bead.g;
           const errB = bb - bead.b;
 
-          if (col + 1 < N) {
-            const ni = row * N + (col + 1);
+          if (c + 1 < cols) {
+            const ni = row * cols + (c + 1);
             srcR[ni] += errR * 7/16;
             srcG[ni] += errG * 7/16;
             srcB[ni] += errB * 7/16;
           }
-          if (row + 1 < N) {
-            if (col - 1 >= 0) {
-              const ni = (row + 1) * N + (col - 1);
+          if (row + 1 < rows) {
+            if (c - 1 >= 0) {
+              const ni = (row + 1) * cols + (c - 1);
               srcR[ni] += errR * 3/16;
               srcG[ni] += errG * 3/16;
               srcB[ni] += errB * 3/16;
             }
-            const ni = (row + 1) * N + col;
+            const ni = (row + 1) * cols + c;
             srcR[ni] += errR * 5/16;
             srcG[ni] += errG * 5/16;
             srcB[ni] += errB * 5/16;
-            if (col + 1 < N) {
-              const ni = (row + 1) * N + (col + 1);
+            if (c + 1 < cols) {
+              const ni = (row + 1) * cols + (c + 1);
               srcR[ni] += errR * 1/16;
               srcG[ni] += errG * 1/16;
               srcB[ni] += errB * 1/16;
@@ -1494,11 +1506,11 @@
       grid.push(rowData);
     }
 
-    currentGridData = { grid, colorCounts };
+    currentGridData = { grid, colorCounts, cols, rows };
 
     // 渲染
-    renderGrid(grid, N);
-    renderLegend(colorCounts, N);
+    renderGrid(grid, cols, rows);
+    renderLegend(colorCounts);
 
     // 显示结果区
     resultsSection.classList.remove('hidden');
@@ -1506,54 +1518,60 @@
     originalImage.src = currentImage.src;
 
     // 更新统计
-    statGrid.textContent = `${N}×${N}`;
+    statGrid.textContent = `${cols}×${rows}`;
     statColors.textContent = colorCounts.size;
-    statTotal.textContent = N * N;
+    statTotal.textContent = totalCells;
   }
 
   // ============ 通用网格线绘制 ============
-  function drawAllGridLines(ctx, ox, oy, gridPx, N, cellSize) {
+  function drawAllGridLines(ctx, ox, oy, gridPxX, gridPxY, cols, rows, cellSize) {
     const gridColor = getGridLineColor();
     if (gridColor === null) return;
-    // 细线
+    const maxDim = Math.max(cols, rows);
+    // 细线 - 竖线
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = cellSize > 10 ? 1 : 0.5;
     ctx.beginPath();
-    for (let i = 0; i <= N; i++) {
+    for (let i = 0; i <= cols; i++) {
       const pos = ox + i * cellSize;
-      ctx.moveTo(pos + 0.5, oy); ctx.lineTo(pos + 0.5, oy + gridPx);
+      ctx.moveTo(pos + 0.5, oy); ctx.lineTo(pos + 0.5, oy + gridPxY);
+    }
+    // 细线 - 横线
+    for (let i = 0; i <= rows; i++) {
       const yPos = oy + i * cellSize;
-      ctx.moveTo(ox, yPos + 0.5); ctx.lineTo(ox + gridPx, yPos + 0.5);
+      ctx.moveTo(ox, yPos + 0.5); ctx.lineTo(ox + gridPxX, yPos + 0.5);
     }
     ctx.stroke();
     // 大格粗线
     const majorN = getMajorGridN();
-    if (majorN > 0 && N >= majorN) {
+    if (majorN > 0 && maxDim >= majorN) {
       ctx.strokeStyle = activeMajorColor;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
       ctx.beginPath();
-      for (let i = 0; i <= N; i += majorN) {
+      for (let i = 0; i <= cols; i += majorN) {
         const pos = ox + i * cellSize;
-        ctx.moveTo(pos, oy); ctx.lineTo(pos, oy + gridPx);
+        ctx.moveTo(pos, oy); ctx.lineTo(pos, oy + gridPxY);
+      }
+      for (let i = 0; i <= rows; i += majorN) {
         const yPos = oy + i * cellSize;
-        ctx.moveTo(ox, yPos); ctx.lineTo(ox + gridPx, yPos);
+        ctx.moveTo(ox, yPos); ctx.lineTo(ox + gridPxX, yPos);
       }
       ctx.stroke();
     }
   }
 
   // ============ 渲染网格 ============
-  function renderGrid(grid, N) {
+  function renderGrid(grid, cols, rows) {
     const isMobile = window.innerWidth < 768;
     // 高清渲染：用 devicePixelRatio 避免模糊
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const zoom = parseFloat(zoomLevel.value);
     const baseWidth = isMobile ? 700 : 1000;
     const displayWidth = Math.round(baseWidth * zoom);
-    const displayCellSize = Math.max(14, Math.floor(displayWidth / N));
-    const showLabels = N <= 80;
+    const displayCellSize = Math.max(14, Math.floor(displayWidth / Math.max(cols, rows)));
+    const showLabels = Math.max(cols, rows) <= 80;
     const labelSize = showLabels ? 32 : 0;
-    const gridPx = N * displayCellSize;
+    const gridPxX = cols * displayCellSize;
     const logicalW = labelSize + gridPx;
     const logicalH = labelSize + gridPx;
 
@@ -1574,8 +1592,8 @@
     const ox = labelSize, oy = labelSize;
 
     // 绘制每个格子
-    for (let row = 0; row < N; row++) {
-      for (let col = 0; col < N; col++) {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
         const bead = grid[row][col];
         ctx.fillStyle = bead.hex;
         ctx.fillRect(ox + col * displayCellSize, oy + row * displayCellSize, displayCellSize, displayCellSize);
@@ -1583,7 +1601,7 @@
     }
 
     // 绘制网格线
-    drawAllGridLines(ctx, ox, oy, gridPx, N, displayCellSize);
+    drawAllGridLines(ctx, ox, oy, gridPxX, gridPxY, cols, rows, displayCellSize);
 
     // 行列标号
     if (showLabels) {
@@ -1596,11 +1614,13 @@
       // 标签区分隔线
       ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5;
       ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
+      for (let i = 0; i <= cols; i++) {
         const x = ox + i * displayCellSize;
-        ctx.moveTo(x, 0); ctx.lineTo(x, oy);           // 列号区间竖线
+        ctx.moveTo(x, 0); ctx.lineTo(x, oy);
+      }
+      for (let i = 0; i <= rows; i++) {
         const y = oy + i * displayCellSize;
-        ctx.moveTo(0, y); ctx.lineTo(ox, y);            // 行号区间横线
+        ctx.moveTo(0, y); ctx.lineTo(ox, y);
       }
       ctx.stroke();
 
@@ -1611,14 +1631,14 @@
       ctx.textBaseline = 'middle';
 
       // 列号 (顶部)
-      for (let col = 0; col < N; col++) {
+      for (let col = 0; col < cols; col++) {
         const cx = ox + col * displayCellSize + displayCellSize / 2;
         ctx.fillText(String(col + 1), cx, oy / 2);
       }
 
       // 行号 (左侧)
       ctx.textAlign = 'center';
-      for (let row = 0; row < N; row++) {
+      for (let row = 0; row < rows; row++) {
         const cy = oy + row * displayCellSize + displayCellSize / 2;
         ctx.fillText(String(row + 1), ox / 2, cy);
       }
@@ -1626,7 +1646,7 @@
   }
 
   // ============ 渲染图例 ============
-  function renderLegend(colorCounts, N) {
+  function renderLegend(colorCounts) {
     // 按数量降序排列
     const entries = [];
     for (const [hex, count] of colorCounts) {
@@ -1649,22 +1669,23 @@
   exportBtn.addEventListener('click', () => {
     if (!currentGridData) return;
 
-    const { grid, colorCounts } = currentGridData;
-    const N = grid.length;
+    const { grid, colorCounts, cols, rows } = currentGridData;
 
     // 根据网格密度自适应格子大小，确保编号可读
+    const maxDim = Math.max(cols, rows);
     let cellSize, fontSize;
-    if (N <= 40)       { cellSize = 64; fontSize = 20; }
-    else if (N <= 60)  { cellSize = 48; fontSize = 16; }
-    else if (N <= 80)  { cellSize = 40; fontSize = 13; }
-    else if (N <= 120) { cellSize = 32; fontSize = 11; }
-    else               { cellSize = 26; fontSize = 9; }
+    if (maxDim <= 40)       { cellSize = 64; fontSize = 20; }
+    else if (maxDim <= 60)  { cellSize = 48; fontSize = 16; }
+    else if (maxDim <= 80)  { cellSize = 40; fontSize = 13; }
+    else if (maxDim <= 120) { cellSize = 32; fontSize = 11; }
+    else                    { cellSize = 26; fontSize = 9; }
 
     const showCodes = cellSize >= 20; // 格子太小就不写编号
     const showExportLabels = true; // 导出始终带坐标
     const exportLabelSize = showExportLabels ? 34 : 0;
     const lineWidth = 1;
-    const gridPx = N * cellSize;
+    const gridPxX = cols * cellSize;
+    const gridPxY = rows * cellSize;
 
     // 图例区
     const legendEntries = [];
@@ -1685,8 +1706,8 @@
     // 标题区
     const titleH = 50;
     const labelPad = showExportLabels ? exportLabelSize : 0;
-    const totalW = Math.max(labelPad + gridPx, legendW);
-    const totalH = titleH + labelPad + gridPx + 12 + legendH;
+    const totalW = Math.max(labelPad + Math.max(gridPxX, gridPxY), legendW);
+    const totalH = titleH + labelPad + Math.max(gridPxX, gridPxY) + 12 + legendH;
 
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width = totalW;
@@ -1702,10 +1723,10 @@
     ctx.fillStyle = '#1a1a1a';
     ctx.font = 'bold 22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`拼豆图纸  ${N}×${N}  |  用色 ${colorCounts.size} 种  |  总豆数 ${N*N}`, 20, 34);
+    ctx.fillText(`拼豆图纸  ${cols}×${rows}  |  用色 ${colorCounts.size} 种  |  总豆数 ${cols*rows}`, 20, 34);
 
     // ---- 网格 ----
-    const offsetX = Math.floor((totalW - labelPad - gridPx) / 2) + labelPad;
+    const offsetX = Math.floor((totalW - labelPad - gridPxX) / 2) + labelPad;
     const gridY = titleH + labelPad;
 
     // 辅助函数：判断文字颜色
@@ -1716,8 +1737,8 @@
       return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#1a1a1a' : '#ffffff';
     }
 
-    for (let row = 0; row < N; row++) {
-      for (let col = 0; col < N; col++) {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
         const bead = grid[row][col];
         const x = offsetX + col * cellSize;
         const y = gridY + row * cellSize;
@@ -1737,7 +1758,7 @@
     }
 
     // 网格线（跟随开关）
-    drawAllGridLines(ctx, offsetX, gridY, gridPx, N, cellSize);
+    drawAllGridLines(ctx, offsetX, gridY, gridPxX, gridPxY, cols, rows, cellSize);
 
     // 行列坐标标签
     if (showExportLabels) {
@@ -1749,9 +1770,11 @@
       }
       // 标签区分隔线
       ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5; ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
+      for (let i = 0; i <= cols; i++) {
         const x = offsetX - exportLabelSize + i * cellSize;
         ctx.moveTo(x, gridY - exportLabelSize); ctx.lineTo(x, gridY);
+      }
+      for (let i = 0; i <= rows; i++) {
         const y = gridY - exportLabelSize + i * cellSize;
         ctx.moveTo(offsetX - exportLabelSize, y); ctx.lineTo(offsetX, y);
       }
@@ -1764,14 +1787,14 @@
       ctx.textBaseline = 'middle';
 
       // 列号（顶部）
-      for (let col = 0; col < N; col++) {
+      for (let col = 0; col < cols; col++) {
         const cx = offsetX + col * cellSize + cellSize / 2;
         const cy = gridY - exportLabelSize / 2;
         ctx.fillText(String(col + 1), cx, cy);
       }
 
       // 行号（左侧）
-      for (let row = 0; row < N; row++) {
+      for (let row = 0; row < rows; row++) {
         const cx = offsetX - exportLabelSize / 2;
         const cy = gridY + row * cellSize + cellSize / 2;
         ctx.fillText(String(row + 1), cx, cy);
@@ -1779,7 +1802,7 @@
     }
 
     // ---- 图例 ----
-    const legendY = gridY + gridPx + 12;
+    const legendY = gridY + Math.max(gridPxX, gridPxY) + 12;
     ctx.fillStyle = '#1a1a1a';
     ctx.font = 'bold 16px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'left';
@@ -1815,7 +1838,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `拼豆图纸_${N}x${N}_MARD色号.png`;
+      a.download = `拼豆图纸_${cols}x${rows}_MARD色号.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1827,12 +1850,12 @@
   saveToPhoneBtn.addEventListener('click', () => {
     if (!currentGridData) return;
 
-    const { grid } = currentGridData;
-    const N = grid.length;
+    const { grid, cols, rows } = currentGridData;
     // 高分辨率导出，手机上更清晰
-    const cellSize = N <= 50 ? 56 : (N <= 80 ? 42 : (N <= 120 ? 32 : 24));
+    const cellSize = Math.max(cols,rows) <= 50 ? 56 : (Math.max(cols,rows) <= 80 ? 42 : (Math.max(cols,rows) <= 120 ? 32 : 24));
     const labelSize = 34;
-    const gridPx = N * cellSize;
+    const gridPxX = cols * cellSize;
+    const gridPxY = rows * cellSize;
     const canvasW = labelSize + gridPx;
     const canvasH = labelSize + gridPx;
 
@@ -1848,8 +1871,8 @@
     const ox = labelSize, oy = labelSize;
 
     // 画格子
-    for (let row = 0; row < N; row++) {
-      for (let col = 0; col < N; col++) {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
         const bead = grid[row][col];
         ctx.fillStyle = bead.hex;
         ctx.fillRect(ox + col * cellSize, oy + row * cellSize, cellSize, cellSize);
@@ -1868,13 +1891,13 @@
     }
 
     // 网格线
-    drawAllGridLines(ctx, ox, oy, gridPx, N, cellSize);
+    drawAllGridLines(ctx, ox, oy, gridPxX, gridPxY, cols, rows, cellSize);
 
     // 坐标
     if (borderColor.value !== 'transparent') {
       ctx.fillStyle = borderColor.value;
-      ctx.fillRect(0, 0, ox + gridPx, oy);
-      ctx.fillRect(0, 0, ox, oy + gridPx);
+      ctx.fillRect(0, 0, ox + gridPxX, oy);
+      ctx.fillRect(0, 0, ox, oy + gridPxY);
     }
     ctx.fillStyle = '#374151';
     const labelFont = Math.max(10, cellSize - 2);
@@ -1883,15 +1906,17 @@
     ctx.textBaseline = 'middle';
     // 标签区分隔线
     ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5; ctx.beginPath();
-    for (let i = 0; i <= N; i++) {
+    for (let i = 0; i <= cols; i++) {
       ctx.moveTo(ox + i*cellSize, 0); ctx.lineTo(ox + i*cellSize, oy);
+    }
+    for (let i = 0; i <= rows; i++) {
       ctx.moveTo(0, oy + i*cellSize); ctx.lineTo(ox, oy + i*cellSize);
     }
     ctx.stroke();
-    for (let col = 0; col < N; col++) {
+    for (let col = 0; col < cols; col++) {
       ctx.fillText(String(col+1), ox + col*cellSize + cellSize/2, oy - labelSize/2);
     }
-    for (let row = 0; row < N; row++) {
+    for (let row = 0; row < rows; row++) {
       ctx.fillText(String(row+1), ox - labelSize/2, oy + row*cellSize + cellSize/2);
     }
 
@@ -1901,7 +1926,7 @@
 
       // 尝试 Web Share API（iOS/Android 可直接保存到相册）
       if (navigator.share && navigator.canShare) {
-        const file = new File([blob], `拼豆图纸_${N}x${N}.png`, { type: 'image/png' });
+        const file = new File([blob], `拼豆图纸_${cols}x${rows}.png`, { type: 'image/png' });
         const shareData = { files: [file], title: '拼豆图纸' };
         if (navigator.canShare(shareData)) {
           navigator.share(shareData).catch(() => fallbackDownload());
@@ -1929,7 +1954,7 @@
           // 降级：直接下载
           const a = document.createElement('a');
           a.href = url;
-          a.download = `拼豆图纸_${N}x${N}.png`;
+          a.download = `拼豆图纸_${cols}x${rows}.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1942,19 +1967,18 @@
   copyTextBtn.addEventListener('click', () => {
     if (!currentGridData) return;
 
-    const { grid } = currentGridData;
-    const N = grid.length;
+    const { grid, cols, rows } = currentGridData;
     const lines = [];
 
-    for (let row = 0; row < N; row++) {
+    for (let row = 0; row < rows; row++) {
       const codes = [];
-      for (let col = 0; col < N; col++) {
-        codes.push(grid[row][col].code);
+      for (let col = 0; col < cols; col++) {
+        codes.push(grid[row][c].code);
       }
       lines.push(`第${String(row + 1).padStart(3, ' ')}行: ${codes.join(' ')}`);
     }
 
-    const text = `MARD 拼豆图纸 ${N}×${N}\n${'='.repeat(40)}\n${lines.join('\n')}\n${'='.repeat(40)}\n共 ${N*N} 颗豆子`;
+    const text = `MARD 拼豆图纸 ${cols}×${rows}\n${'='.repeat(40)}\n${lines.join('\n')}\n${'='.repeat(40)}\n共 ${cols*rows} 颗豆子`;
 
     navigator.clipboard.writeText(text).then(() => {
       // 临时提示
@@ -1978,19 +2002,18 @@
   copyBorderBtn.addEventListener('click', () => {
     if (!currentGridData) return;
 
-    const { grid } = currentGridData;
-    const N = grid.length;
+    const { grid, cols, rows } = currentGridData;
     const lines = [];
     let totalBeads = 0;
 
-    lines.push(`MARD 拼豆边框清单 ${N}×${N}`);
+    lines.push(`MARD 拼豆边框清单 ${cols}×${rows}`);
     lines.push('═'.repeat(50));
     lines.push('');
 
     // 上边框（第1行）
     lines.push('【上边框 — 第 1 行】');
     const topRow = [];
-    for (let col = 0; col < N; col++) {
+    for (let col = 0; col < cols; col++) {
       topRow.push(`${grid[0][col].code}`);
       totalBeads++;
     }
@@ -1998,20 +2021,20 @@
     lines.push('');
 
     // 下边框（最后一行）
-    lines.push(`【下边框 — 第 ${N} 行】`);
+    lines.push(`【下边框 — 第 ${rows} 行】`);
     const bottomRow = [];
-    for (let col = 0; col < N; col++) {
-      bottomRow.push(`${grid[N-1][col].code}`);
+    for (let col = 0; col < cols; col++) {
+      bottomRow.push(`${grid[rows-1][c].code}`);
       totalBeads++;
     }
     lines.push(bottomRow.join(' '));
     lines.push('');
 
     // 左边框（第1列，跳过首尾行）
-    if (N > 2) {
+    if (rows > 2) {
       lines.push('【左边框 — 第 1 列】（不含四角）');
       const leftCol = [];
-      for (let row = 1; row < N - 1; row++) {
+      for (let row = 1; row < rows - 1; row++) {
         leftCol.push(`第${row+1}行: ${grid[row][0].code}`);
         totalBeads++;
       }
@@ -2020,11 +2043,11 @@
     }
 
     // 右边框（最后一列，跳过首尾行）
-    if (N > 2) {
-      lines.push(`【右边框 — 第 ${N} 列】（不含四角）`);
+    if (rows > 2) {
+      lines.push(`【右边框 — 第 ${cols} 列】（不含四角）`);
       const rightCol = [];
-      for (let row = 1; row < N - 1; row++) {
-        rightCol.push(`第${row+1}行: ${grid[row][N-1].code}`);
+      for (let row = 1; row < rows - 1; row++) {
+        rightCol.push(`第${row+1}行: ${grid[row][cols-1].code}`);
         totalBeads++;
       }
       lines.push(rightCol.join('  '));
@@ -2032,7 +2055,7 @@
     }
 
     lines.push('═'.repeat(50));
-    lines.push(`边框共计 ${totalBeads} 颗豆子（网格 ${N}×${N} = ${N*N} 颗）`);
+    lines.push(`边框共计 ${totalBeads} 颗豆子（网格 ${cols}×${rows} = ${cols*rows} 颗）`);
 
     const text = lines.join('\n');
 
