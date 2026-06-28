@@ -526,10 +526,19 @@
         <input type="checkbox" id="ditherToggle" checked style="width:16px;height:16px;cursor:pointer;">
         抖色优化
       </label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
-        <input type="checkbox" id="gridLinesToggle" checked style="width:16px;height:16px;cursor:pointer;">
-        显示网格线
-      </label>
+      <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:6px;">网格线：</label>
+      <select id="gridLineStyle" style="padding:6px 10px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
+        <option value="#d4d4d8" selected>浅灰线</option>
+        <option value="#000000">纯黑线</option>
+        <option value="#ffffff">白色线</option>
+        <option value="#94a3b8">深灰线</option>
+        <option value="#6366f1">主题色线</option>
+        <option value="none">无网格线</option>
+        <option value="custom">✨ 自定义颜色</option>
+      </select>
+      <input type="color" id="gridLineCustomColor" value="#d4d4d8"
+        style="width:32px;height:32px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;padding:0;display:none;"
+        title="自定义网格线颜色">
     </div>
 
     <!-- 色板选择 -->
@@ -988,7 +997,8 @@
   const copyBorderBtn = document.getElementById('copyBorderBtn');
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
-  const gridLinesToggle = document.getElementById('gridLinesToggle');
+  const gridLineStyle = document.getElementById('gridLineStyle');
+  const gridLineCustom = document.getElementById('gridLineCustomColor');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1024,11 +1034,23 @@
     if (currentImage) generatePattern();
   });
 
+  // 获取当前网格线颜色（none=不画线）
+  function getGridLineColor() {
+    const v = gridLineStyle.value;
+    if (v === 'none') return null;
+    if (v === 'custom') return gridLineCustom.value;
+    return v;
+  }
+
   // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
     if (currentImage) generatePattern();
   });
-  gridLinesToggle.addEventListener('change', () => {
+  gridLineStyle.addEventListener('change', () => {
+    gridLineCustom.style.display = gridLineStyle.value === 'custom' ? 'inline' : 'none';
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+  gridLineCustom.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
@@ -1314,8 +1336,9 @@
     }
 
     // 绘制网格线（可开关）
-    if (gridLinesToggle.checked) {
-      ctx.strokeStyle = '#d4d4d8';
+    const gridColor = getGridLineColor();
+    if (gridColor !== null) {
+      ctx.strokeStyle = gridColor;
       ctx.lineWidth = lineWidth;
       ctx.beginPath();
       for (let i = 0; i <= N; i++) {
@@ -1464,8 +1487,9 @@
     }
 
     // 网格线（跟随开关）
-    if (gridLinesToggle.checked) {
-      ctx.strokeStyle = '#d4d4d8';
+    const gridColor = getGridLineColor();
+    if (gridColor !== null) {
+      ctx.strokeStyle = gridColor;
       ctx.lineWidth = lineWidth;
       ctx.beginPath();
       for (let i = 0; i <= N; i++) {
@@ -1518,7 +1542,7 @@
       // 色块
       ctx.fillStyle = e.hex;
       ctx.fillRect(lx, ly, 22, 22);
-      ctx.strokeStyle = '#d4d4d8';
+      ctx.strokeStyle = getGridLineColor() || '#d4d4d8';
       ctx.strokeRect(lx, ly, 22, 22);
 
       // 编号
