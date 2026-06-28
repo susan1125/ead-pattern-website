@@ -537,9 +537,13 @@
         style="width:52px;padding:5px 4px;border:2px solid #e2e8f0;border-radius:16px;font-size:12px;text-align:center;display:none;">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格色：</label>
       <span id="majorGridColorPalette" style="display:inline-flex;gap:4px;align-items:center;"></span>
-      <input type="color" id="majorGridColorCustom" value="#6366f1"
-        style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
-        title="自定义大格线颜色">
+      <span id="majorGridHSV" class="hidden" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-left:4px;">
+        <input type="range" id="majorH" min="0" max="360" value="248" style="width:80px;height:6px;-webkit-appearance:none;background:linear-gradient(to right,red,yellow,lime,cyan,blue,magenta,red);border-radius:3px;">
+        <input type="range" id="majorS" min="0" max="100" value="74" style="width:60px;height:6px;">
+        <input type="range" id="majorV" min="0" max="100" value="95" style="width:60px;height:6px;">
+        <button id="majorHSVClose" style="font-size:12px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;">✕</button>
+      </span>
+      <span id="majorGridColorBtn" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;font-weight:bold;color:#6366f1;font-size:16px;transition:all .15s;" title="自定义大格线颜色">+</span>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">边框色：</label>
       <input type="color" id="borderColorCustom" value="#f1f5f9"
         style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
@@ -1006,7 +1010,11 @@
   const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
   const majorGridColorPalette = document.getElementById('majorGridColorPalette');
-  const majorGridColor = document.getElementById('majorGridColorCustom');
+  const majorGridHSV = document.getElementById('majorGridHSV');
+  const majorH = document.getElementById('majorH');
+  const majorS = document.getElementById('majorS');
+  const majorV = document.getElementById('majorV');
+  const majorGridColorBtn = document.getElementById('majorGridColorBtn');
   const borderColor = document.getElementById('borderColorCustom');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
@@ -1055,9 +1063,6 @@
   gridLineColor.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
-  majorGridColor.addEventListener('input', () => {
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-  });
   borderColor.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
@@ -1103,32 +1108,35 @@
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
-  // 大格线颜色预设 + 色轮
+  // 大格线颜色预设 + HSV滑块
   const MAJOR_COLORS = ['#6366f1','#000000','#ef4444','#f97316','#22c55e','#3b82f6','#94a3b8'];
   let activeMajorColor = '#6366f1';
+
+  function hexToHsv(hex){let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;let max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,h=0,s=max===0?0:d/max,v=max;if(d){if(max===r)h=((g-b)/d+6)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;}return{h:Math.round(h),s:Math.round(s*100),v:Math.round(v*100)};}
+  function hsvToHex(h,s,v){s/=100;v/=100;let i=Math.floor(h/60),f=h/60-i,p=v*(1-s),q=v*(1-s*f),t=v*(1-s*(1-f)),rr,gg,bb;switch(i%6){case 0:rr=v;gg=t;bb=p;break;case 1:rr=q;gg=v;bb=p;break;case 2:rr=p;gg=v;bb=t;break;case 3:rr=p;gg=q;bb=v;break;case 4:rr=t;gg=p;bb=v;break;default:rr=v;gg=p;bb=q;}return'#'+[rr,gg,bb].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');}
+
   MAJOR_COLORS.forEach(c => {
-    const dot = document.createElement('span');
-    Object.assign(dot.style, {
-      display:'inline-block',width:'24px',height:'24px',borderRadius:'50%',
-      cursor:'pointer',background:c,border:'2px solid '+c,
-      boxShadow: c===activeMajorColor ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
-      transition:'all .15s',
-    });
+    const dot=document.createElement('span');
+    Object.assign(dot.style,{display:'inline-block',width:'24px',height:'24px',borderRadius:'50%',cursor:'pointer',background:c,border:'2px solid '+c,boxShadow:c===activeMajorColor?'0 0 0 3px rgba(99,102,241,.4)':'none',transition:'all .15s'});
     dot.addEventListener('click',()=>{
-      activeMajorColor = c;
-      activeMajorColor = c;
-      majorGridColorPalette.querySelectorAll('span').forEach((d,j)=>{
-        d.style.boxShadow = MAJOR_COLORS[j]===c ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
-      });
-      if(currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+      activeMajorColor=c;majorGridColorBtn.style.color=c;majorGridHSV.style.display='none';
+      majorGridColorPalette.querySelectorAll('span').forEach((d,j)=>d.style.boxShadow=MAJOR_COLORS[j]===c?'0 0 0 3px rgba(99,102,241,.4)':'none');
+      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
     });
     majorGridColorPalette.appendChild(dot);
   });
-  majorGridColor.addEventListener('input',()=>{
-    activeMajorColor = majorGridColor.value;
-    majorGridColorPalette.querySelectorAll('span').forEach(d=>d.style.boxShadow='none');
-    if(currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  // HSV 滑块
+  majorGridColorBtn.addEventListener('click',()=>{
+    const vis=majorGridHSV.style.display==='inline-flex'?'none':'inline-flex';
+    majorGridHSV.style.display=vis;
+    if(vis==='inline-flex'){const hsv=hexToHsv(activeMajorColor);majorH.value=hsv.h;majorS.value=hsv.s;majorV.value=hsv.v;}
   });
+  document.getElementById('majorHSVClose').addEventListener('click',()=>{majorGridHSV.style.display='none';});
+  [majorH,majorS,majorV].forEach(sl=>sl.addEventListener('input',()=>{
+    activeMajorColor=hsvToHex(Number(majorH.value),Number(majorS.value),Number(majorV.value));
+    majorGridColorBtn.style.color=activeMajorColor;majorGridColorPalette.querySelectorAll('span').forEach(d=>d.style.boxShadow='none');
+    if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
+  }));
 
   // 色板切换
   const customPaletteEditor = document.getElementById('customPaletteEditor');
