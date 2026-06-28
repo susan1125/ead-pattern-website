@@ -536,6 +536,16 @@
         <input type="checkbox" id="ditherToggle" checked style="width:16px;height:16px;cursor:pointer;">
         抖色优化
       </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
+        <input type="checkbox" id="removeBgToggle" style="width:16px;height:16px;cursor:pointer;">
+        去背景
+      </label>
+      <select id="bgTolerance" style="padding:4px 6px;border:2px solid #e2e8f0;border-radius:14px;font-size:11px;background:#fff;cursor:pointer;display:none;">
+        <option value="30">低</option>
+        <option value="50" selected>中</option>
+        <option value="80">高</option>
+        <option value="120">超高</option>
+      </select>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:4px;">缩放：</label>
       <select id="zoomLevel" style="padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="0.8">80%</option>
@@ -1032,6 +1042,8 @@
   const copyBorderBtn = document.getElementById('copyBorderBtn');
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
+  const removeBgToggle = document.getElementById('removeBgToggle');
+  const bgTolerance = document.getElementById('bgTolerance');
   const gridLineColor = document.getElementById('gridLineColor');
   const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
@@ -1085,6 +1097,13 @@
 
   // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
+    if (currentImage) generatePattern();
+  });
+  removeBgToggle.addEventListener('change', () => {
+    bgTolerance.style.display = removeBgToggle.checked ? 'inline' : 'none';
+    if (currentImage) generatePattern();
+  });
+  bgTolerance.addEventListener('change', () => {
     if (currentImage) generatePattern();
   });
   zoomLevel.addEventListener('change', () => {
@@ -1398,6 +1417,28 @@
       }
     }
 
+    // 背景检测：采样四边像素，找主色
+    let bgR = -1, bgG = -1, bgB = -1, bgTol = 50;
+    if (removeBgToggle.checked) {
+      bgTol = parseInt(bgTolerance.value);
+      const edgePixels = [];
+      for (let i = 0; i < N; i++) {
+        // 上下边
+        [i, (N-1)*N + i, i*N, i*N + N - 1].forEach(idx => {
+          if (idx < N*N) edgePixels.push([srcR[idx], srcG[idx], srcB[idx]]);
+        });
+      }
+      // 找最常见的边缘色
+      const colorMap = new Map();
+      edgePixels.forEach(([r,g,b]) => {
+        const key = Math.round(r/30)*30 + ',' + Math.round(g/30)*30 + ',' + Math.round(b/30)*30;
+        colorMap.set(key, (colorMap.get(key)||0) + 1);
+      });
+      let maxCount = 0, bestKey = '';
+      colorMap.forEach((v,k) => { if(v>maxCount){maxCount=v;bestKey=k;} });
+      [bgR, bgG, bgB] = bestKey.split(',').map(Number);
+    }
+
     for (let row = 0; row < N; row++) {
       const rowData = [];
       for (let col = 0; col < N; col++) {
@@ -1405,6 +1446,13 @@
         let rr = Math.max(0, Math.min(255, Math.round(srcR[i])));
         let gg = Math.max(0, Math.min(255, Math.round(srcG[i])));
         let bb = Math.max(0, Math.min(255, Math.round(srcB[i])));
+        // 去背景：靠近边缘主色的像素 → 白色
+        if (bgR >= 0) {
+          const dr = rr - bgR, dg = gg - bgG, db = bb - bgB;
+          if (dr*dr + dg*dg + db*db < bgTol * bgTol) {
+            rr = 255; gg = 255; bb = 255;
+          }
+        }
 
         const bead = findClosestBead(rr, gg, bb);
         rowData.push(bead);
