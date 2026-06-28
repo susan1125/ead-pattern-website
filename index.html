@@ -528,7 +528,6 @@
         <button class="size-btn" data-size="100">100×100</button>
         <button class="size-btn" data-size="150">150×150</button>
         <button class="size-btn" data-size="200">200×200</button>
-        <button class="size-btn" id="rolePresetBtn" style="background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-color:transparent;font-weight:700;">🎮 角色模式</button>
       </div>
       <input type="number" id="customSize" placeholder="自定义"
         style="width:68px;padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:13px;text-align:center;"
@@ -1108,20 +1107,6 @@
     if (!btn) return;
     const size = parseInt(btn.dataset.size);
     setActiveSize(size);
-    if (currentImage) generatePattern();
-  });
-
-  // 🎮 角色模式预设
-  document.getElementById('rolePresetBtn').addEventListener('click', () => {
-    setActiveSize(80);
-    simplifyLevel.value = '16';
-    lineArtToggle.checked = true;
-    lineArtStrength.value = '88';
-    lineArtStrength.style.display = 'inline';
-    keepRatioToggle.checked = true;
-    removeBgToggle.checked = true;
-    bgTolerance.style.display = 'inline';
-    bgTolerance.value = '50';
     if (currentImage) generatePattern();
   });
 
