@@ -427,6 +427,16 @@
   .shop-footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 20px 0 0; }
   .shop-footer-contact { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-size: 13px; }
   .shop-footer-contact span { color: var(--primary); }
+
+  /* 色板弹窗 */
+  .swatch-overlay { position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.35);
+    display:flex;align-items:center;justify-content:center; }
+  .swatch-panel { background:#fff;border-radius:16px;padding:16px;max-width:370px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,.2); }
+  .swatch-panel h4 { font-size:14px;margin-bottom:10px;color:#2c3e50; }
+  .swatch-grid { display:grid;grid-template-columns:repeat(10,1fr);gap:3px; }
+  .swatch-cell { aspect-ratio:1;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:all .1s; }
+  .swatch-cell:hover,.swatch-cell.active { border-color:#6366f1;transform:scale(1.2);z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.15); }
+  .swatch-close { float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;padding:0 4px;line-height:1; }
 </style>
 </head>
 <body>
@@ -1126,7 +1136,57 @@
     majorGridColorPalette.appendChild(dot);
   });
   // HSV 滑块
-  majorGridColorBtn.addEventListener('click',()=>{
+  // ===== 通用色板弹窗 =====
+  const swatchOverlay=document.getElementById('swatchOverlay');
+  const swatchGrid=document.getElementById('swatchGrid');
+  const swatchTitle=document.getElementById('swatchTitle');
+  let swatchTarget=null; // 'grid'|'major'|'border'
+
+  // 生成120色调色板（色相×饱和度×明度）
+  function buildSwatchPalette(){
+    const colors=[];
+    for(let h=0;h<360;h+=30)for(let s=40;s<=100;s+=20)for(let v=60;v<=100;v+=20)colors.push(hsvToHex(h,s,v));
+    // 灰度列
+    for(let g=0;g<=255;g+=28)colors.push('#'+g.toString(16).padStart(2,'0').repeat(3));
+    // 去重并限制100色
+    return[...new Set(colors)].slice(0,100);
+  }
+  const SWATCH_COLORS=buildSwatchPalette();
+
+  SWATCH_COLORS.forEach(c=>{
+    const cell=document.createElement('div');
+    cell.className='swatch-cell';cell.style.background=c;
+    cell.addEventListener('click',()=>{
+      if(swatchTarget==='major'){
+        activeMajorColor=c;majorGridColorBtn.style.color=c;
+        majorGridColorPalette.querySelectorAll('span').forEach(d=>d.style.boxShadow='none');
+      }else if(swatchTarget==='border'){
+        borderColor.value=c;
+      }else{
+        gridLineColor.value=c;
+      }
+      swatchOverlay.classList.add('hidden');
+      if(currentGridData)renderGrid(currentGridData.grid,currentGridData.grid.length);
+    });
+    swatchGrid.appendChild(cell);
+  });
+
+  document.getElementById('swatchClose').addEventListener('click',()=>swatchOverlay.classList.add('hidden'));
+  swatchOverlay.addEventListener('click',e=>{if(e.target===swatchOverlay)swatchOverlay.classList.add('hidden');});
+
+  function openSwatch(target){
+    swatchTarget=target;
+    swatchTitle.textContent=target==='major'?'大格线颜色':(target==='border'?'边框背景色':'网格线颜色');
+    swatchOverlay.classList.remove('hidden');
+  }
+
+  // 改造三个颜色按钮：点击打开色板
+  gridLineColor.addEventListener('click',e=>{e.preventDefault();openSwatch('grid');});
+  majorGridColorBtn.addEventListener('click',()=>openSwatch('major'));
+  borderColor.addEventListener('click',e=>{e.preventDefault();openSwatch('border');});
+
+  // 保留 HSV 入口（长按或双击 + 按钮）
+  majorGridColorBtn.addEventListener('dblclick',()=>{
     const vis=majorGridHSV.style.display==='inline-flex'?'none':'inline-flex';
     majorGridHSV.style.display=vis;
     if(vis==='inline-flex'){const hsv=hexToHsv(activeMajorColor);majorH.value=hsv.h;majorS.value=hsv.s;majorV.value=hsv.v;}
@@ -2082,6 +2142,15 @@
   console.log('  上传图片即可开始！');
 })();
 </script>
+
+<!-- 色板弹窗 -->
+<div class="swatch-overlay hidden" id="swatchOverlay">
+  <div class="swatch-panel">
+    <button class="swatch-close" id="swatchClose">✕</button>
+    <h4 id="swatchTitle">选择颜色</h4>
+    <div class="swatch-grid" id="swatchGrid"></div>
+  </div>
+</div>
 
 </body>
 </html>
