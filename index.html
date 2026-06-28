@@ -40,18 +40,16 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
-  /* 环境背景层 */
+  /* 环境背景层 — Patagonia雪山 */
   body::before {
     content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(74,107,138,.06) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107,143,163,.05) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 50% at 50% 50%, rgba(200,210,220,.04) 0%, transparent 80%);
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c8d8e8'/%3E%3Cstop offset='40%25' stop-color='%23dce6f0'/%3E%3Cstop offset='70%25' stop-color='%23eef2f6'/%3E%3Cstop offset='100%25' stop-color='%23f4f6f9'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fff'/%3E%3Cstop offset='60%25' stop-color='%23dfe6ed'/%3E%3Cstop offset='100%25' stop-color='%2394a8ba'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt2' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23e8edf2'/%3E%3Cstop offset='50%25' stop-color='%23bcc8d4'/%3E%3Cstop offset='100%25' stop-color='%237d93a8'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt3' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d5dde5'/%3E%3Cstop offset='100%25' stop-color='%2390a3b5'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt4' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c5d0db'/%3E%3Cstop offset='100%25' stop-color='%237d93a8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23sky)'/%3E%3C!-- far mountains --%3E%3Cpolygon points='0,600 200,380 350,450 500,300 650,420 800,350 950,400 1100,320 1250,380 1400,300 1600,420 1600,900 0,900' fill='%23d5dde5' opacity='.6'/%3E%3Cpolygon points='0,650 150,500 300,550 450,420 600,520 750,450 900,500 1050,430 1200,480 1350,410 1500,460 1600,500 1600,900 0,900' fill='url(%23mt2)' opacity='.7'/%3E%3C!-- mid mountains --%3E%3Cpolygon points='0,700 100,580 250,620 400,520 550,600 700,540 850,590 1000,510 1150,560 1300,500 1450,550 1600,580 1600,900 0,900' fill='url(%23mt3)' opacity='.85'/%3E%3C!-- front mountains --%3E%3Cpolygon points='0,750 180,640 350,700 500,590 650,670 800,620 950,660 1100,580 1250,630 1400,570 1600,650 1600,900 0,900' fill='url(%23mt4)'/%3E%3C!-- snow caps --%3E%3Cpolygon points='500,590 560,630 500,640 450,620' fill='%23fff' opacity='.8'/%3E%3Cpolygon points='1100,580 1160,615 1100,625 1050,610' fill='%23fff' opacity='.8'/%3E%3Cpolygon points='180,640 230,670 180,680 140,660' fill='%23fff' opacity='.6'/%3E%3Cpolygon points='1400,570 1450,600 1400,610 1360,595' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") center/cover no-repeat;
+    opacity: .8;
   }
   body::after {
     content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
-    opacity: .5;
+    background: radial-gradient(ellipse 50% 40% at 50% 30%, rgba(255,255,255,.3) 0%, transparent 70%);
   }
 
   .container {
