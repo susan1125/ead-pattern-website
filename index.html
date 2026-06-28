@@ -1521,6 +1521,17 @@
         ctx.fillRect(0, 0, canvasW, oy);       // 顶部列号区
         ctx.fillRect(0, 0, ox, canvasH);        // 左侧行号区
       }
+      // 标签区分隔线
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const x = ox + i * displayCellSize;
+        ctx.moveTo(x, 0); ctx.lineTo(x, oy);           // 列号区间竖线
+        const y = oy + i * displayCellSize;
+        ctx.moveTo(0, y); ctx.lineTo(ox, y);            // 行号区间横线
+      }
+      ctx.stroke();
+
       ctx.fillStyle = '#64748b';
       const labelFont = Math.max(8, Math.min(11, displayCellSize - 1));
       ctx.font = `bold ${labelFont}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
@@ -1664,6 +1675,16 @@
         ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, gridPx + exportLabelSize, exportLabelSize);
         ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, exportLabelSize, gridPx + exportLabelSize);
       }
+      // 标签区分隔线
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5; ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const x = offsetX - exportLabelSize + i * cellSize;
+        ctx.moveTo(x, gridY - exportLabelSize); ctx.lineTo(x, gridY);
+        const y = gridY - exportLabelSize + i * cellSize;
+        ctx.moveTo(offsetX - exportLabelSize, y); ctx.lineTo(offsetX, y);
+      }
+      ctx.stroke();
+
       const labelFont = Math.max(9, Math.min(14, cellSize - 2));
       ctx.fillStyle = '#374151';
       ctx.font = `bold ${labelFont}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
@@ -1788,6 +1809,13 @@
     ctx.font = `bold ${labelFont}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    // 标签区分隔线
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5; ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      ctx.moveTo(ox + i*cellSize, 0); ctx.lineTo(ox + i*cellSize, oy);
+      ctx.moveTo(0, oy + i*cellSize); ctx.lineTo(ox, oy + i*cellSize);
+    }
+    ctx.stroke();
     for (let col = 0; col < N; col++) {
       ctx.fillText(String(col+1), ox + col*cellSize + cellSize/2, oy - labelSize/2);
     }
