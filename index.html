@@ -544,6 +544,15 @@
         <input type="checkbox" id="keepRatioToggle" style="width:16px;height:16px;cursor:pointer;">
         保持比例
       </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
+        <input type="checkbox" id="lineArtToggle" style="width:16px;height:16px;cursor:pointer;">
+        线稿模式
+      </label>
+      <select id="lineArtStrength" style="padding:4px 6px;border:2px solid #e2e8f0;border-radius:14px;font-size:11px;background:#fff;cursor:pointer;display:none;">
+        <option value="30">细线</option>
+        <option value="50" selected>标准</option>
+        <option value="80">粗线</option>
+      </select>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:4px;">简化：</label>
       <select id="simplifyLevel" style="padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="0">不限制</option>
@@ -1057,6 +1066,8 @@
   const ditherToggle = document.getElementById('ditherToggle');
   const removeBgToggle = document.getElementById('removeBgToggle');
   const keepRatioToggle = document.getElementById('keepRatioToggle');
+  const lineArtToggle = document.getElementById('lineArtToggle');
+  const lineArtStrength = document.getElementById('lineArtStrength');
   const simplifyLevel = document.getElementById('simplifyLevel');
   const bgTolerance = document.getElementById('bgTolerance');
   const gridLineColor = document.getElementById('gridLineColor');
@@ -1122,6 +1133,13 @@
     if (currentImage) generatePattern();
   });
   simplifyLevel.addEventListener('change', () => {
+    if (currentImage) generatePattern();
+  });
+  lineArtToggle.addEventListener('change', () => {
+    lineArtStrength.style.display = lineArtToggle.checked ? 'inline' : 'none';
+    if (currentImage) generatePattern();
+  });
+  lineArtStrength.addEventListener('change', () => {
     if (currentImage) generatePattern();
   });
   zoomLevel.addEventListener('change', () => {
@@ -1462,6 +1480,33 @@
       let maxCount = 0, bestKey = '';
       colorMap.forEach((v,k) => { if(v>maxCount){maxCount=v;bestKey=k;} });
       [bgR, bgG, bgB] = bestKey.split(',').map(Number);
+    }
+
+    // 线稿模式：Sobel边缘检测 → 轮廓描边
+    const outlinePixel = new Uint8Array(totalCells);
+    if (lineArtToggle.checked) {
+      const threshold = parseInt(lineArtStrength.value);
+      const gray = new Float32Array(totalCells);
+      let maxEdge = 0;
+      for (let i = 0; i < totalCells; i++) gray[i] = srcR[i]*0.299 + srcG[i]*0.587 + srcB[i]*0.114;
+      for (let r = 1; r < rows - 1; r++) {
+        for (let c = 1; c < cols - 1; c++) {
+          const i00=(r-1)*cols+(c-1),i01=(r-1)*cols+c,i02=(r-1)*cols+(c+1);
+          const i10=r*cols+(c-1),i12=r*cols+(c+1);
+          const i20=(r+1)*cols+(c-1),i21=(r+1)*cols+c,i22=(r+1)*cols+(c+1);
+          const gx=-gray[i00]-2*gray[i10]-gray[i20]+gray[i02]+2*gray[i12]+gray[i22];
+          const gy=-gray[i00]-2*gray[i01]-gray[i02]+gray[i20]+2*gray[i21]+gray[i22];
+          const mag=Math.sqrt(gx*gx+gy*gy);
+          outlinePixel[r*cols+c]=mag;
+          if(mag>maxEdge)maxEdge=mag;
+        }
+      }
+      if(maxEdge>0){
+        const cutoff=maxEdge*(threshold/100);
+        for(let i=0;i<totalCells;i++){
+          if(outlinePixel[i]>=cutoff){srcR[i]=47;srcG[i]=43;srcB[i]=47;}
+        }
+      }
     }
 
     for (let row = 0; row < rows; row++) {
