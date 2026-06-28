@@ -526,6 +526,10 @@
         <input type="checkbox" id="ditherToggle" checked style="width:16px;height:16px;cursor:pointer;">
         抖色优化
       </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
+        <input type="checkbox" id="gridLinesToggle" checked style="width:16px;height:16px;cursor:pointer;">
+        显示网格线
+      </label>
     </div>
 
     <!-- 色板选择 -->
@@ -984,6 +988,7 @@
   const copyBorderBtn = document.getElementById('copyBorderBtn');
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
+  const gridLinesToggle = document.getElementById('gridLinesToggle');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1019,9 +1024,12 @@
     if (currentImage) generatePattern();
   });
 
-  // 抖动开关
+  // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
     if (currentImage) generatePattern();
+  });
+  gridLinesToggle.addEventListener('change', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
   // 色板切换
@@ -1305,19 +1313,21 @@
       }
     }
 
-    // 绘制网格线
-    ctx.strokeStyle = '#d4d4d8';
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    for (let i = 0; i <= N; i++) {
-      const pos = ox + i * displayCellSize;
-      ctx.moveTo(pos + 0.5, oy);
-      ctx.lineTo(pos + 0.5, oy + gridPx);
-      const yPos = oy + i * displayCellSize;
-      ctx.moveTo(ox, yPos + 0.5);
-      ctx.lineTo(ox + gridPx, yPos + 0.5);
+    // 绘制网格线（可开关）
+    if (gridLinesToggle.checked) {
+      ctx.strokeStyle = '#d4d4d8';
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const pos = ox + i * displayCellSize;
+        ctx.moveTo(pos + 0.5, oy);
+        ctx.lineTo(pos + 0.5, oy + gridPx);
+        const yPos = oy + i * displayCellSize;
+        ctx.moveTo(ox, yPos + 0.5);
+        ctx.lineTo(ox + gridPx, yPos + 0.5);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
 
     // 行列标号
     if (showLabels) {
@@ -1453,19 +1463,21 @@
       }
     }
 
-    // 网格线
-    ctx.strokeStyle = '#d4d4d8';
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    for (let i = 0; i <= N; i++) {
-      const pos = offsetX + i * cellSize;
-      ctx.moveTo(pos + 0.5, gridY);
-      ctx.lineTo(pos + 0.5, gridY + gridPx);
-      const yPos = gridY + i * cellSize;
-      ctx.moveTo(offsetX, yPos + 0.5);
-      ctx.lineTo(offsetX + gridPx, yPos + 0.5);
+    // 网格线（跟随开关）
+    if (gridLinesToggle.checked) {
+      ctx.strokeStyle = '#d4d4d8';
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const pos = offsetX + i * cellSize;
+        ctx.moveTo(pos + 0.5, gridY);
+        ctx.lineTo(pos + 0.5, gridY + gridPx);
+        const yPos = gridY + i * cellSize;
+        ctx.moveTo(offsetX, yPos + 0.5);
+        ctx.lineTo(offsetX + gridPx, yPos + 0.5);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
 
     // 行列坐标标签
     if (showExportLabels) {
