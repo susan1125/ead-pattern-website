@@ -546,7 +546,10 @@
         <option value="10">每10格</option>
         <option value="20">每20格</option>
         <option value="25">每25格</option>
+        <option value="custom">自定义</option>
       </select>
+      <input type="number" id="majorGridCustom" value="8" min="2" max="100"
+        style="width:56px;padding:6px 6px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;text-align:center;display:none;">
     </div>
 
     <!-- 色板选择 -->
@@ -1008,6 +1011,7 @@
   const gridLineStyle = document.getElementById('gridLineStyle');
   const gridLineCustom = document.getElementById('gridLineCustomColor');
   const majorGridSpacing = document.getElementById('majorGridSpacing');
+  const majorGridCustom = document.getElementById('majorGridCustom');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1063,6 +1067,10 @@
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
   majorGridSpacing.addEventListener('change', () => {
+    majorGridCustom.style.display = majorGridSpacing.value === 'custom' ? 'inline' : 'none';
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+  majorGridCustom.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
@@ -1327,7 +1335,9 @@
     }
     ctx.stroke();
     // 大格粗线
-    const majorN = parseInt(majorGridSpacing.value);
+    let majorN = majorGridSpacing.value === 'custom'
+      ? parseInt(majorGridCustom.value) || 0
+      : parseInt(majorGridSpacing.value);
     if (majorN > 0 && N >= majorN) {
       ctx.strokeStyle = gridColor;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
