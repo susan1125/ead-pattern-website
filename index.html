@@ -1775,17 +1775,35 @@
     }).catch(() => {});
   });
 
+  // ===== 管理员入口锁 =====
+  // 规则：只有你自己（知道 ?admin 的人）能看到 ⚙️
+  // 老板打开专属链接时，⚙️ 完全隐藏
+  const urlParams = new URLSearchParams(location.search);
+  const isAdmin = urlParams.has('admin');
+  const hasStoreParams = urlParams.has('name') || urlParams.has('theme');
+
+  // ⚙️ 仅在管理员模式或默认首页显示；老板链接里彻底隐藏
+  if (isAdmin || (!hasStoreParams && location.search === '')) {
+    shopToggle.style.display = 'flex';
+  } else {
+    shopToggle.style.display = 'none';
+  }
+
+  // 如果老板打开的是专属链接，页面上方加小标记（老板不可见 ⚙️）
+  if (hasStoreParams && !isAdmin) {
+    console.log('🏪 店铺定制模式 - 后台已锁定');
+  }
+
   // Load settings from URL params on startup (overrides localStorage)
   (function initFromUrl() {
-    const p = new URLSearchParams(location.search);
-    if ([...p.keys()].length === 0) return;
+    if ([...urlParams.keys()].length === 0) return;
     const urlSettings = {};
-    if (p.has('name')) urlSettings.name = p.get('name');
-    if (p.has('slogan')) urlSettings.slogan = p.get('slogan');
-    if (p.has('logo')) urlSettings.logo = p.get('logo');
-    if (p.has('contact')) urlSettings.contact = p.get('contact');
-    if (p.has('address')) urlSettings.address = p.get('address');
-    if (p.has('theme')) urlSettings.theme = p.get('theme');
+    if (urlParams.has('name')) urlSettings.name = urlParams.get('name');
+    if (urlParams.has('slogan')) urlSettings.slogan = urlParams.get('slogan');
+    if (urlParams.has('logo')) urlSettings.logo = urlParams.get('logo');
+    if (urlParams.has('contact')) urlSettings.contact = urlParams.get('contact');
+    if (urlParams.has('address')) urlSettings.address = urlParams.get('address');
+    if (urlParams.has('theme')) urlSettings.theme = urlParams.get('theme');
     if (Object.keys(urlSettings).length > 0) {
       saveShopSettings(urlSettings);
       applyShopSettings(urlSettings);
