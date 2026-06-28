@@ -537,6 +537,12 @@
       </span>
       <input type="number" id="majorGridCustom" value="8" min="2" max="100"
         style="width:52px;padding:5px 4px;border:2px solid #e2e8f0;border-radius:16px;font-size:12px;text-align:center;display:none;">
+      <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格色：</label>
+      <span id="majorGridColorPalette" style="display:inline-flex;gap:4px;align-items:center;">
+      </span>
+      <input type="color" id="majorGridColorCustom" value="#6366f1"
+        style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
+        title="自定义大格线颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">边框色：</label>
       <span id="borderColorPalette" style="display:inline-flex;gap:4px;align-items:center;">
       </span>
@@ -1005,6 +1011,8 @@
   const gridLineCustom = document.getElementById('gridLineCustomColor');
   const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
+  const majorGridColorPalette = document.getElementById('majorGridColorPalette');
+  const majorGridColorCustom = document.getElementById('majorGridColorCustom');
   const borderColorPalette = document.getElementById('borderColorPalette');
   const borderColorCustom = document.getElementById('borderColorCustom');
   const paletteSelect = document.getElementById('paletteSelect');
@@ -1149,6 +1157,46 @@
   }
 
   majorGridCustom.addEventListener('input', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+
+  // 大格线颜色盘
+  const MAJOR_GRID_COLOR_PRESETS = [
+    { color: '#6366f1', label: '紫蓝' },
+    { color: '#000000', label: '纯黑' },
+    { color: '#ef4444', label: '红色' },
+    { color: '#f97316', label: '橙色' },
+    { color: '#22c55e', label: '绿色' },
+    { color: '#3b82f6', label: '蓝色' },
+    { color: '#94a3b8', label: '灰色' },
+  ];
+  let selectedMajorGridColor = '#6366f1';
+
+  MAJOR_GRID_COLOR_PRESETS.forEach((p, i) => {
+    const btn = document.createElement('span');
+    btn.title = p.label;
+    const isActive = p.color === selectedMajorGridColor;
+    Object.assign(btn.style, {
+      display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%',
+      cursor: 'pointer', background: p.color, border: '2px solid ' + p.color,
+      transition: 'all .15s',
+      boxShadow: isActive ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
+    });
+    btn.addEventListener('click', () => {
+      selectedMajorGridColor = p.color;
+      majorGridColorPalette.querySelectorAll('span').forEach((b, j) => {
+        const c = MAJOR_GRID_COLOR_PRESETS[j].color;
+        b.style.boxShadow = c === p.color ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
+      });
+      majorGridColorCustom.value = p.color;
+      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    });
+    majorGridColorPalette.appendChild(btn);
+  });
+
+  majorGridColorCustom.addEventListener('input', () => {
+    selectedMajorGridColor = majorGridColorCustom.value;
+    majorGridColorPalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
@@ -1471,7 +1519,7 @@
     // 大格粗线
     const majorN = getMajorGridN();
     if (majorN > 0 && N >= majorN) {
-      ctx.strokeStyle = gridColor;
+      ctx.strokeStyle = selectedMajorGridColor;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
       ctx.beginPath();
       for (let i = 0; i <= N; i += majorN) {
