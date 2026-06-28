@@ -545,10 +545,10 @@
         保持比例
       </label>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
-        <input type="checkbox" id="lineArtToggle" style="width:16px;height:16px;cursor:pointer;">
+        <input type="checkbox" id="lineArtToggle" checked style="width:16px;height:16px;cursor:pointer;">
         线稿模式
       </label>
-      <select id="lineArtStrength" style="padding:4px 6px;border:2px solid #e2e8f0;border-radius:14px;font-size:11px;background:#fff;cursor:pointer;display:none;">
+      <select id="lineArtStrength" style="padding:4px 6px;border:2px solid #e2e8f0;border-radius:14px;font-size:11px;background:#fff;cursor:pointer;">
         <option value="94">淡</option>
         <option value="88" selected>中</option>
         <option value="78">深</option>
@@ -557,8 +557,9 @@
       <select id="simplifyLevel" style="padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="0">不限制</option>
         <option value="24">24色</option>
-        <option value="0" selected>不限制</option>
+        <option value="0">不限制</option>
         <option value="16">16色</option>
+        <option value="12" selected>12色</option>
         <option value="12">12色</option>
         <option value="8">8色</option>
         <option value="5">5色</option>
@@ -1089,7 +1090,8 @@
 
   let currentImage = null;
   let currentGridSize = 50;
-  let currentGridData = null; // { grid: [[bead]], colorCounts: Map }
+  let currentGridData = null;
+  lineArtStrength.style.display = lineArtToggle.checked ? "inline" : "none"; // { grid: [[bead]], colorCounts: Map }
 
   // ============ 网格尺寸选择 ============
   function setActiveSize(size) {
@@ -1457,9 +1459,12 @@
       if (a < 128) {
         srcR[i] = 255; srcG[i] = 255; srcB[i] = 255;
       } else {
-        srcR[i] = pixels[idx];
-        srcG[i] = pixels[idx + 1];
-        srcB[i] = pixels[idx + 2];
+        // 自动增强对比度：拉开明暗差距
+        let r = pixels[idx], g = pixels[idx + 1], b = pixels[idx + 2];
+        r = Math.max(0, Math.min(255, (r - 128) * 1.4 + 128));
+        g = Math.max(0, Math.min(255, (g - 128) * 1.4 + 128));
+        b = Math.max(0, Math.min(255, (b - 128) * 1.4 + 128));
+        srcR[i] = r; srcG[i] = g; srcB[i] = b;
       }
     }
 
@@ -1589,12 +1594,12 @@
               const neighbor = grid[nr][nc];
               if (neighbor.hex !== center.hex) {
                 const d = Math.abs(center.r-neighbor.r) + Math.abs(center.g-neighbor.g) + Math.abs(center.b-neighbor.b);
-                if (d > (100 - sensitivity) * 3) diffCount++;
+                if (d > (100 - sensitivity) * 2) diffCount++;
               }
             }
           }
-          // 至少2个邻居不同色 → 描边
-          if (diffCount >= 2) {
+          // 至少1个邻居显著不同色 → 描边
+          if (diffCount >= 1 && diffCount < 4) {
             newGrid[r][c] = outlineBead;
             colorCounts.set(center.hex, (colorCounts.get(center.hex)||1) - 1);
             colorCounts.set(outlineBead.hex, (colorCounts.get(outlineBead.hex)||0) + 1);
