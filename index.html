@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼豆图纸生成器</title>
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f0f2f5 100%);
+    min-height: 100vh;
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 32px 0 20px;
+  }
+  .header .icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -.02em;
+  }
+  .header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-top: 4px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  /* Upload Area */
+  .upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius-sm);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    background: #fafbfc;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: var(--primary);
+    background: #eef2ff;
+  }
+  .upload-area.has-image {
+    padding: 16px;
+  }
+  .upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .upload-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .upload-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+  .upload-text strong {
+    color: var(--primary);
+  }
+  .upload-hint {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 6px;
+  }
+  .preview-thumb {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Controls Row */
+  .controls-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 16px;
+  }
+  .controls-row label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .size-options {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .size-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .size-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .size-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99,102,241,.35);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(99,102,241,.45);
+  }
+  .btn-outline {
+    background: #fff;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-outline:hover {
+    background: #eef2ff;
+  }
+  .btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* Result Sections */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(180deg, #6366f1, #a855f7);
+    border-radius: 2px;
+  }
+
+  .image-preview-wrap {
+    text-align: center;
+  }
+  .image-preview-wrap img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+  }
+
+  .grid-canvas-wrap {
+    text-align: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .grid-canvas-wrap canvas {
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Legend */
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .legend-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+  .legend-code {
+    font-weight: 700;
+    font-size: 11px;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .legend-name {
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+  }
+  .legend-count {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Border Detail */
+  .border-section {
+    margin-bottom: 16px;
+  }
+  .border-label {
+    font-weight: 700;
+    font-size: 13px;
+    color: #f97316;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .border-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #f97316;
+    border-radius: 50%;
+  }
+  .border-beads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .border-bead {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .border-bead .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .border-bead .code {
+    font-weight: 700;
+    color: #6366f1;
+  }
+  .border-bead .pos {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+  .border-col-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .border-col-list .border-bead {
+    width: fit-content;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+  .stats-bar span {
+    background: #f1f5f9;
+    padding: 4px 12px;
+    border-radius: 12px;
+  }
+  .stats-bar strong {
+    color: var(--primary);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: #94a3b8;
+  }
+  .empty-state .big-icon {
+    font-size: 56px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 20px 0 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .container { padding: 12px 12px 40px; }
+    .card { padding: 16px; }
+    .header { padding: 20px 0 12px; }
+    .header h1 { font-size: 22px; }
+    .controls-row { flex-direction: column; align-items: flex-start; }
+    .legend-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  }
+
+  /* Fade-in animation */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .result-card {
+    animation: fadeInUp .4s ease-out;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="icon">🧩</span>
+    <h1>拼豆图纸生成器</h1>
+    <p>上传图片，自动生成像素化拼豆图纸</p>
+  </div>
+
+  <!-- Upload & Settings Card -->
+  <div class="card">
+    <div class="upload-area" id="uploadArea">
+      <span class="upload-icon" id="uploadIcon">📷</span>
+      <span class="upload-text" id="uploadText"><strong>点击上传</strong> 或拖拽图片到这里</span>
+      <span class="upload-hint">支持 JPG / PNG / WebP / GIF</span>
+      <img class="preview-thumb hidden" id="uploadPreview" alt="预览">
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="controls-row">
+      <label>网格密度：</label>
+      <div class="size-options" id="sizeOptions">
+        <button class="size-btn" data-size="30">30×30</button>
+        <button class="size-btn active" data-size="50">50×50</button>
+        <button class="size-btn" data-size="80">80×80</button>
+        <button class="size-btn" data-size="100">100×100</button>
+        <button class="size-btn" data-size="150">150×150</button>
+        <button class="size-btn" data-size="200">200×200</button>
+      </div>
+      <input type="number" id="customSize" placeholder="自定义"
+        style="width:68px;padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:13px;text-align:center;"
+        min="10" max="300" value="50">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;margin-left:4px;">
+        <input type="checkbox" id="ditherToggle" checked style="width:16px;height:16px;cursor:pointer;">
+        抖色优化
+      </label>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsSection" class="hidden">
+    <!-- Original Image -->
+    <div class="card result-card">
+      <div class="section-title">📷 原始图片</div>
+      <div class="image-preview-wrap">
+        <img id="originalImage" alt="原始图片">
+      </div>
+    </div>
+
+    <!-- Bead Grid -->
+    <div class="card result-card">
+      <div class="section-title">🧩 拼豆图纸</div>
+      <div class="stats-bar">
+        <span>网格：<strong id="statGrid">50×50</strong></span>
+        <span>用色：<strong id="statColors">0</strong> 种</span>
+        <span>总豆数：<strong id="statTotal">2500</strong></span>
+      </div>
+      <div class="grid-canvas-wrap">
+        <canvas id="gridCanvas"></canvas>
+      </div>
+      <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="exportBtn">⬇ 导出 PNG</button>
+        <button class="btn btn-outline" id="saveToPhoneBtn">📱 保存到相册</button>
+        <button class="btn btn-outline" id="copyTextBtn">📋 复制图纸</button>
+        <button class="btn btn-outline" id="copyBorderBtn">📐 复制边框</button>
+      </div>
+    </div>
+
+    <!-- Color Legend -->
+    <div class="card result-card">
+      <div class="section-title">🎨 色卡图例</div>
+      <div class="legend-grid" id="legendGrid"></div>
+    </div>
+  </div>
+
+  <!-- Empty State (when no image) -->
+  <div class="card empty-state" id="emptyState">
+    <span class="big-icon">🎨</span>
+    <p>上传一张图片来开始制作拼豆图纸吧！</p>
+  </div>
+
+  <div class="footer">拼豆图纸生成器 · 纯前端实现 · 无需网络</div>
+
+</div>
+
+<script>
+(function() {
+  // ============ MARD 融合豆 291 色拼豆色板 ============
+  // 数据来源: github.com/maxcleme/beadcolors (v3) + 自动中文命名
+  // A: 白/亮色系 B-C-D: 暖色调 E-F-G-H: 冷色调 M-P-Q-R-T-Y-ZG: 特殊色系
+  const BEAD_COLORS = [
+    { code: 'A1', name: '淡黄色', hex: '#FAF4C8' },
+    { code: 'A10', name: '亮橙红色', hex: '#F77C31' },
+    { code: 'A11', name: '浅橘黄色', hex: '#FFDD99' },
+    { code: 'A12', name: '浅橙红色', hex: '#FE9F72' },
+    { code: 'A13', name: '浅橙色', hex: '#FFC365' },
+    { code: 'A14', name: '亮红色', hex: '#FD543D' },
+    { code: 'A15', name: '浅黄色', hex: '#FFF365' },
+    { code: 'A16', name: '浅黄色', hex: '#FFFF9F' },
+    { code: 'A17', name: '浅橘黄色', hex: '#FFE36E' },
+    { code: 'A18', name: '浅橙色', hex: '#FEBE7D' },
+    { code: 'A19', name: '浅红色', hex: '#FD7C72' },
+    { code: 'A2', name: '淡黄色', hex: '#FFFFD5' },
+    { code: 'A20', name: '浅橘黄色', hex: '#FFD568' },
+    { code: 'A21', name: '浅橘黄色', hex: '#FFE395' },
+    { code: 'A22', name: '浅黄色', hex: '#F4F57D' },
+    { code: 'A23', name: '浅橙红色', hex: '#E6C9B7' },
+    { code: 'A24', name: '浅黄色', hex: '#F7F8A2' },
+    { code: 'A25', name: '浅橘黄色', hex: '#FFD67D' },
+    { code: 'A26', name: '亮橘黄色', hex: '#FFC830' },
+    { code: 'A3', name: '浅黄色', hex: '#FEFF8B' },
+    { code: 'A4', name: '浅黄色', hex: '#FBED56' },
+    { code: 'A5', name: '亮橘黄色', hex: '#F4D738' },
+    { code: 'A6', name: '亮橙色', hex: '#FEAC4C' },
+    { code: 'A7', name: '亮橙红色', hex: '#FE8B4C' },
+    { code: 'A8', name: '亮橘黄色', hex: '#FFDA45' },
+    { code: 'A9', name: '浅橙红色', hex: '#FF995B' },
+    { code: 'B1', name: '亮黄色', hex: '#E6EE31' },
+    { code: 'B10', name: '浅青色', hex: '#95D3C2' },
+    { code: 'B11', name: '深黄绿色', hex: '#5D722A' },
+    { code: 'B12', name: '深绿色', hex: '#166F41' },
+    { code: 'B13', name: '浅黄绿色', hex: '#CAEB7B' },
+    { code: 'B14', name: '亮黄绿色', hex: '#ADE946' },
+    { code: 'B15', name: '深绿色', hex: '#2E5132' },
+    { code: 'B16', name: '浅绿色', hex: '#C5ED9C' },
+    { code: 'B17', name: '黄绿色', hex: '#9BB13A' },
+    { code: 'B18', name: '亮黄色', hex: '#E6EE49' },
+    { code: 'B19', name: '青色', hex: '#24B88C' },
+    { code: 'B2', name: '亮绿色', hex: '#63F347' },
+    { code: 'B20', name: '淡绿色', hex: '#C2F0CC' },
+    { code: 'B21', name: '深天蓝色', hex: '#156A6B' },
+    { code: 'B22', name: '暗天蓝色', hex: '#0B3C43' },
+    { code: 'B23', name: '暗黄绿色', hex: '#303A21' },
+    { code: 'B24', name: '浅黄绿色', hex: '#EEFCA5' },
+    { code: 'B25', name: '绿色', hex: '#4E846D' },
+    { code: 'B26', name: '橘黄色', hex: '#8D7A35' },
+    { code: 'B27', name: '浅绿色', hex: '#CCE1AF' },
+    { code: 'B28', name: '浅绿色', hex: '#9EE5B9' },
+    { code: 'B29', name: '亮黄绿色', hex: '#C5E254' },
+    { code: 'B3', name: '浅绿色', hex: '#9EF780' },
+    { code: 'B30', name: '淡黄绿色', hex: '#E2FCB1' },
+    { code: 'B31', name: '浅绿色', hex: '#B0E792' },
+    { code: 'B32', name: '亮黄绿色', hex: '#9CAB5A' },
+    { code: 'B4', name: '亮绿色', hex: '#5DE035' },
+    { code: 'B5', name: '亮绿色', hex: '#35E352' },
+    { code: 'B6', name: '亮绿色', hex: '#65E2A6' },
+    { code: 'B7', name: '青色', hex: '#3DAF80' },
+    { code: 'B8', name: '绿色', hex: '#1C9C4F' },
+    { code: 'B9', name: '深绿色', hex: '#27523A' },
+    { code: 'C1', name: '淡绿色', hex: '#E8FFE7' },
+    { code: 'C10', name: '亮天蓝色', hex: '#3EBCE2' },
+    { code: 'C11', name: '亮天蓝色', hex: '#28DDDE' },
+    { code: 'C12', name: '深蓝色', hex: '#1C334D' },
+    { code: 'C13', name: '淡蓝色', hex: '#CDE8FF' },
+    { code: 'C14', name: '淡天蓝色', hex: '#D5FDFF' },
+    { code: 'C15', name: '天蓝色', hex: '#22C4C6' },
+    { code: 'C16', name: '蓝色', hex: '#1557A8' },
+    { code: 'C17', name: '亮天蓝色', hex: '#04D1F6' },
+    { code: 'C18', name: '暗蓝色', hex: '#1D3344' },
+    { code: 'C19', name: '天蓝色', hex: '#1887A2' },
+    { code: 'C2', name: '淡天蓝色', hex: '#A9F9FC' },
+    { code: 'C20', name: '蓝色', hex: '#176DAF' },
+    { code: 'C21', name: '淡蓝色', hex: '#BEDDFF' },
+    { code: 'C22', name: '亮天蓝色', hex: '#67B4BE' },
+    { code: 'C23', name: '淡蓝色', hex: '#C8E2FF' },
+    { code: 'C24', name: '浅蓝色', hex: '#7CC4FF' },
+    { code: 'C25', name: '浅天蓝色', hex: '#A9E5E5' },
+    { code: 'C26', name: '亮天蓝色', hex: '#3CAED8' },
+    { code: 'C27', name: '淡靛蓝色', hex: '#D3DFFA' },
+    { code: 'C28', name: '淡蓝色', hex: '#BBCFED' },
+    { code: 'C29', name: '靛蓝色', hex: '#34488E' },
+    { code: 'C3', name: '浅天蓝色', hex: '#A0E2FB' },
+    { code: 'C4', name: '亮天蓝色', hex: '#41CCFF' },
+    { code: 'C5', name: '天蓝色', hex: '#01ACEB' },
+    { code: 'C6', name: '亮蓝色', hex: '#50AAF0' },
+    { code: 'C7', name: '亮蓝色', hex: '#3677D2' },
+    { code: 'C8', name: '蓝色', hex: '#0F54C0' },
+    { code: 'C9', name: '亮靛蓝色', hex: '#324BCA' },
+    { code: 'D1', name: '浅靛蓝色', hex: '#AEB4F2' },
+    { code: 'D10', name: '深紫色', hex: '#361851' },
+    { code: 'D11', name: '浅靛蓝色', hex: '#B9BAE1' },
+    { code: 'D12', name: '浅品红色', hex: '#DE9AD4' },
+    { code: 'D13', name: '品红色', hex: '#B90095' },
+    { code: 'D14', name: '品红色', hex: '#8B279B' },
+    { code: 'D15', name: '靛蓝色', hex: '#2F1F90' },
+    { code: 'D16', name: '淡靛蓝色', hex: '#E3E1EE' },
+    { code: 'D17', name: '淡靛蓝色', hex: '#C4D4F6' },
+    { code: 'D18', name: '亮紫色', hex: '#A45EC7' },
+    { code: 'D19', name: '浅品红色', hex: '#D8C3D7' },
+    { code: 'D2', name: '浅靛蓝色', hex: '#858EDD' },
+    { code: 'D20', name: '品红色', hex: '#9C32B2' },
+    { code: 'D21', name: '深品红色', hex: '#9A009B' },
+    { code: 'D22', name: '靛蓝色', hex: '#333A95' },
+    { code: 'D23', name: '淡紫色', hex: '#EBDAFC' },
+    { code: 'D24', name: '浅靛蓝色', hex: '#7786E5' },
+    { code: 'D25', name: '亮靛蓝色', hex: '#494FC7' },
+    { code: 'D26', name: '淡紫色', hex: '#DFC2F8' },
+    { code: 'D3', name: '靛蓝色', hex: '#2F54AF' },
+    { code: 'D4', name: '深靛蓝色', hex: '#182A84' },
+    { code: 'D5', name: '亮品红色', hex: '#B843C5' },
+    { code: 'D6', name: '浅紫色', hex: '#AC7BDE' },
+    { code: 'D7', name: '亮紫色', hex: '#8854B3' },
+    { code: 'D8', name: '淡紫色', hex: '#E2D3FF' },
+    { code: 'D9', name: '淡紫色', hex: '#D5B9F8' },
+    { code: 'E1', name: '淡橙红色', hex: '#FDD3CC' },
+    { code: 'E10', name: '亮粉色', hex: '#D33793' },
+    { code: 'E11', name: '淡橙红色', hex: '#FCDDD2' },
+    { code: 'E12', name: '浅粉色', hex: '#F78FC3' },
+    { code: 'E13', name: '粉色', hex: '#B5006D' },
+    { code: 'E14', name: '淡橙红色', hex: '#FFD1BA' },
+    { code: 'E15', name: '淡红色', hex: '#F8C7C9' },
+    { code: 'E16', name: '淡橙红色', hex: '#FFF3EB' },
+    { code: 'E17', name: '淡粉色', hex: '#FFE2EA' },
+    { code: 'E18', name: '淡粉色', hex: '#FFC7DB' },
+    { code: 'E19', name: '淡粉色', hex: '#FEBAD5' },
+    { code: 'E2', name: '淡粉色', hex: '#FEC0DF' },
+    { code: 'E20', name: '浅粉色', hex: '#D8C7D1' },
+    { code: 'E21', name: '浅红色', hex: '#BD9DA1' },
+    { code: 'E22', name: '亮粉色', hex: '#B785A1' },
+    { code: 'E23', name: '品红色', hex: '#937A8D' },
+    { code: 'E24', name: '淡品红色', hex: '#E1BCE8' },
+    { code: 'E3', name: '淡粉色', hex: '#FFB7E7' },
+    { code: 'E4', name: '浅粉色', hex: '#E8649E' },
+    { code: 'E5', name: '亮粉色', hex: '#F551A2' },
+    { code: 'E6', name: '亮粉色', hex: '#F13D74' },
+    { code: 'E7', name: '亮粉色', hex: '#C63478' },
+    { code: 'E8', name: '淡粉色', hex: '#FFDBE9' },
+    { code: 'E9', name: '浅品红色', hex: '#E970CC' },
+    { code: 'F1', name: '浅橙红色', hex: '#FD957B' },
+    { code: 'F10', name: '橙红色', hex: '#8A4526' },
+    { code: 'F11', name: '深红色', hex: '#5A2121' },
+    { code: 'F12', name: '亮红色', hex: '#FD4E6A' },
+    { code: 'F13', name: '亮红色', hex: '#F35744' },
+    { code: 'F14', name: '淡红色', hex: '#FFA9AD' },
+    { code: 'F15', name: '红色', hex: '#D30022' },
+    { code: 'F16', name: '淡橙红色', hex: '#FEC2A6' },
+    { code: 'F17', name: '浅橙红色', hex: '#E69C79' },
+    { code: 'F18', name: '亮橙红色', hex: '#D37C46' },
+    { code: 'F19', name: '亮红色', hex: '#C1444A' },
+    { code: 'F2', name: '亮红色', hex: '#FC3D46' },
+    { code: 'F20', name: '浅红色', hex: '#CD9391' },
+    { code: 'F21', name: '淡粉色', hex: '#F7B4C6' },
+    { code: 'F22', name: '淡粉色', hex: '#FDC0D0' },
+    { code: 'F23', name: '浅橙红色', hex: '#F67E66' },
+    { code: 'F24', name: '浅红色', hex: '#E698AA' },
+    { code: 'F25', name: '亮红色', hex: '#E54B4F' },
+    { code: 'F3', name: '亮红色', hex: '#F74941' },
+    { code: 'F4', name: '亮红色', hex: '#FC283C' },
+    { code: 'F5', name: '红色', hex: '#E7002F' },
+    { code: 'F6', name: '红色', hex: '#943630' },
+    { code: 'F7', name: '红色', hex: '#971937' },
+    { code: 'F8', name: '红色', hex: '#BC0028' },
+    { code: 'F9', name: '亮红色', hex: '#E2677A' },
+    { code: 'G1', name: '淡橙红色', hex: '#FFE2CE' },
+    { code: 'G10', name: '亮橙色', hex: '#D98C39' },
+    { code: 'G11', name: '浅橙色', hex: '#E0C593' },
+    { code: 'G12', name: '浅橙色', hex: '#FFC890' },
+    { code: 'G13', name: '亮橙红色', hex: '#B7714A' },
+    { code: 'G14', name: '橙红色', hex: '#8D614C' },
+    { code: 'G15', name: '淡黄色', hex: '#FCF9E0' },
+    { code: 'G16', name: '淡橙色', hex: '#F2D9BA' },
+    { code: 'G17', name: '橙红色', hex: '#78524B' },
+    { code: 'G18', name: '淡橙色', hex: '#FFE4CC' },
+    { code: 'G19', name: '亮橙红色', hex: '#E07935' },
+    { code: 'G2', name: '淡橙红色', hex: '#FFC4AA' },
+    { code: 'G20', name: '橙红色', hex: '#A94023' },
+    { code: 'G21', name: '亮橙色', hex: '#B88558' },
+    { code: 'G3', name: '浅橙红色', hex: '#F4C3A5' },
+    { code: 'G4', name: '浅橙色', hex: '#E1B383' },
+    { code: 'G5', name: '亮橙色', hex: '#EDB045' },
+    { code: 'G6', name: '亮橙色', hex: '#E99C17' },
+    { code: 'G7', name: '橙红色', hex: '#9D5B3E' },
+    { code: 'G8', name: '红色', hex: '#753832' },
+    { code: 'G9', name: '浅橙色', hex: '#E6B483' },
+    { code: 'H1', name: '淡紫色', hex: '#FDFBFF' },
+    { code: 'H10', name: '淡红色', hex: '#EEE9EA' },
+    { code: 'H11', name: '浅靛蓝色', hex: '#CECDD5' },
+    { code: 'H12', name: '淡橙色', hex: '#FFF5ED' },
+    { code: 'H13', name: '淡橘黄色', hex: '#F5ECD2' },
+    { code: 'H14', name: '浅绿色', hex: '#CFD7D3' },
+    { code: 'H15', name: '天蓝色', hex: '#98A6A8' },
+    { code: 'H16', name: '暗红色', hex: '#1D1414' },
+    { code: 'H17', name: '淡红色', hex: '#F1EDED' },
+    { code: 'H18', name: '淡黄色', hex: '#FFFDF0' },
+    { code: 'H19', name: '淡橙色', hex: '#F6EFE2' },
+    { code: 'H2', name: '淡天蓝色', hex: '#FEFFFF' },
+    { code: 'H20', name: '灰色', hex: '#949FA3' },
+    { code: 'H21', name: '淡橘黄色', hex: '#FFFBE1' },
+    { code: 'H22', name: '浅靛蓝色', hex: '#CACAD4' },
+    { code: 'H23', name: '灰色', hex: '#9A9D94' },
+    { code: 'H3', name: '浅浅灰色', hex: '#B6B1BA' },
+    { code: 'H4', name: '灰色', hex: '#89858C' },
+    { code: 'H5', name: '深灰色', hex: '#48464E' },
+    { code: 'H6', name: '深黑色', hex: '#2F2B2F' },
+    { code: 'H7', name: '深黑色', hex: '#000000' },
+    { code: 'H8', name: '淡粉色', hex: '#E7D6DB' },
+    { code: 'H9', name: '淡白色', hex: '#EDEDED' },
+    { code: 'M1', name: '浅绿色', hex: '#BCC6B8' },
+    { code: 'M10', name: '浅粉色', hex: '#C5B2BC' },
+    { code: 'M11', name: '亮品红色', hex: '#9F7594' },
+    { code: 'M12', name: '红色', hex: '#644749' },
+    { code: 'M13', name: '亮橙红色', hex: '#D19066' },
+    { code: 'M14', name: '亮橙红色', hex: '#C77362' },
+    { code: 'M15', name: '灰色', hex: '#757D78' },
+    { code: 'M2', name: '亮绿色', hex: '#8AA386' },
+    { code: 'M3', name: '天蓝色', hex: '#697D80' },
+    { code: 'M4', name: '浅橙色', hex: '#E3D2BC' },
+    { code: 'M5', name: '浅黄色', hex: '#D0CCAA' },
+    { code: 'M6', name: '亮橘黄色', hex: '#B0A782' },
+    { code: 'M7', name: '亮橙色', hex: '#B4A497' },
+    { code: 'M8', name: '亮红色', hex: '#B38281' },
+    { code: 'M9', name: '亮橙色', hex: '#A58767' },
+    { code: 'P1', name: '淡红色', hex: '#FCF7F8' },
+    { code: 'P10', name: '淡紫色', hex: '#D9C7EA' },
+    { code: 'P11', name: '淡橘黄色', hex: '#F3ECC9' },
+    { code: 'P12', name: '淡天蓝色', hex: '#E6EEF2' },
+    { code: 'P13', name: '浅蓝色', hex: '#AACBEF' },
+    { code: 'P14', name: '天蓝色', hex: '#337680' },
+    { code: 'P15', name: '绿色', hex: '#668575' },
+    { code: 'P16', name: '亮橙色', hex: '#FEBF45' },
+    { code: 'P17', name: '亮橙色', hex: '#FEA324' },
+    { code: 'P18', name: '浅橙红色', hex: '#FEB89F' },
+    { code: 'P19', name: '淡黄色', hex: '#FFFEEC' },
+    { code: 'P2', name: '浅灰色', hex: '#B0A9AC' },
+    { code: 'P20', name: '淡粉色', hex: '#FEBECF' },
+    { code: 'P21', name: '淡红色', hex: '#ECBEBF' },
+    { code: 'P22', name: '浅红色', hex: '#E4A89F' },
+    { code: 'P23', name: '亮红色', hex: '#A56268' },
+    { code: 'P3', name: '浅绿色', hex: '#AFDCAB' },
+    { code: 'P4', name: '浅红色', hex: '#FEA49F' },
+    { code: 'P5', name: '亮橙色', hex: '#EE8C3E' },
+    { code: 'P6', name: '亮青色', hex: '#5FD0A7' },
+    { code: 'P7', name: '浅橙红色', hex: '#EB9270' },
+    { code: 'P8', name: '亮橘黄色', hex: '#F0D958' },
+    { code: 'P9', name: '浅米白色', hex: '#D9D9D9' },
+    { code: 'Q1', name: '浅品红色', hex: '#F2A5E8' },
+    { code: 'Q2', name: '浅黄色', hex: '#E9EC91' },
+    { code: 'Q3', name: '亮黄色', hex: '#FFFF00' },
+    { code: 'Q4', name: '淡品红色', hex: '#FFEBFA' },
+    { code: 'Q5', name: '浅天蓝色', hex: '#76CEDE' },
+    { code: 'R1', name: '红色', hex: '#D50D21' },
+    { code: 'R10', name: '亮橘黄色', hex: '#FFDB4C' },
+    { code: 'R11', name: '淡品红色', hex: '#FFEBFA' },
+    { code: 'R12', name: '浅橘黄色', hex: '#D8D5CE' },
+    { code: 'R13', name: '深灰色', hex: '#55514C' },
+    { code: 'R14', name: '浅天蓝色', hex: '#9FE4DF' },
+    { code: 'R15', name: '浅天蓝色', hex: '#77CEE9' },
+    { code: 'R16', name: '亮天蓝色', hex: '#3ECFCA' },
+    { code: 'R17', name: '青色', hex: '#4A867A' },
+    { code: 'R18', name: '浅绿色', hex: '#7FCD9D' },
+    { code: 'R19', name: '亮黄绿色', hex: '#CDE55D' },
+    { code: 'R2', name: '亮粉色', hex: '#F92F83' },
+    { code: 'R20', name: '浅橙红色', hex: '#E8C7B4' },
+    { code: 'R21', name: '橙色', hex: '#AD6F3C' },
+    { code: 'R22', name: '深红色', hex: '#6C372F' },
+    { code: 'R23', name: '浅橙色', hex: '#FEB872' },
+    { code: 'R24', name: '淡红色', hex: '#F3C1C0' },
+    { code: 'R25', name: '亮红色', hex: '#C9675E' },
+    { code: 'R26', name: '浅品红色', hex: '#D293BE' },
+    { code: 'R27', name: '浅粉色', hex: '#EA8CB1' },
+    { code: 'R28', name: '浅紫色', hex: '#9C87D6' },
+    { code: 'R3', name: '亮橙色', hex: '#FD8324' },
+    { code: 'R4', name: '亮黄色', hex: '#F8EC31' },
+    { code: 'R5', name: '亮绿色', hex: '#35C75B' },
+    { code: 'R6', name: '天蓝色', hex: '#238891' },
+    { code: 'R7', name: '天蓝色', hex: '#19779D' },
+    { code: 'R8', name: '蓝色', hex: '#1A60C3' },
+    { code: 'R9', name: '亮紫色', hex: '#9A56B4' },
+    { code: 'T1', name: '淡白色', hex: '#FFFFFF' },
+    { code: 'Y1', name: '浅粉色', hex: '#FD6FB4' },
+    { code: 'Y2', name: '浅橙红色', hex: '#FEB481' },
+    { code: 'Y3', name: '浅黄绿色', hex: '#D7FAA0' },
+    { code: 'Y4', name: '浅天蓝色', hex: '#8BDBFA' },
+    { code: 'Y5', name: '浅品红色', hex: '#E987EA' },
+    { code: 'ZG1', name: '浅红色', hex: '#DAABB3' },
+    { code: 'ZG2', name: '浅橙色', hex: '#D6AA87' },
+    { code: 'ZG3', name: '浅黄色', hex: '#C1BD8D' },
+    { code: 'ZG4', name: '紫色', hex: '#96869F' },
+    { code: 'ZG5', name: '亮蓝色', hex: '#8490A6' },
+    { code: 'ZG6', name: '浅蓝色', hex: '#94BFE2' },
+    { code: 'ZG7', name: '浅品红色', hex: '#E2A9D2' },
+    { code: 'ZG8', name: '浅紫色', hex: '#AB91C0' },
+  ];
+
+  // 预计算 RGB
+  const beadPalette = BEAD_COLORS.map(c => {
+    const h = c.hex;
+    return {
+      code: c.code,
+      name: c.name,
+      hex: c.hex,
+      r: parseInt(h.slice(1,3), 16),
+      g: parseInt(h.slice(3,5), 16),
+      b: parseInt(h.slice(5,7), 16),
+    };
+  });
+
+  // 颜色距离（加权欧几里得，模拟人眼感知）
+  function colorDistance(r1, g1, b1, r2, g2, b2) {
+    const dr = r1 - r2;
+    const dg = g1 - g2;
+    const db = b1 - b2;
+    // 人眼对绿色最敏感，红色次之，蓝色最弱
+    return 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+  }
+
+  function findClosestBead(r, g, b) {
+    let minDist = Infinity;
+    let closest = beadPalette[0];
+    for (const bead of beadPalette) {
+      const d = colorDistance(r, g, b, bead.r, bead.g, bead.b);
+      if (d < minDist) {
+        minDist = d;
+        closest = bead;
+      }
+    }
+    return closest;
+  }
+
+  // ============ DOM 引用 ============
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const uploadIcon = document.getElementById('uploadIcon');
+  const uploadText = document.getElementById('uploadText');
+  const uploadPreview = document.getElementById('uploadPreview');
+  const sizeOptions = document.getElementById('sizeOptions');
+  const customSizeInput = document.getElementById('customSize');
+  const resultsSection = document.getElementById('resultsSection');
+  const emptyState = document.getElementById('emptyState');
+  const originalImage = document.getElementById('originalImage');
+  const gridCanvas = document.getElementById('gridCanvas');
+  const legendGrid = document.getElementById('legendGrid');
+  const exportBtn = document.getElementById('exportBtn');
+  const copyTextBtn = document.getElementById('copyTextBtn');
+  const copyBorderBtn = document.getElementById('copyBorderBtn');
+  const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
+  const ditherToggle = document.getElementById('ditherToggle');
+  const statGrid = document.getElementById('statGrid');
+  const statColors = document.getElementById('statColors');
+  const statTotal = document.getElementById('statTotal');
+
+  let currentImage = null;
+  let currentGridSize = 50;
+  let currentGridData = null; // { grid: [[bead]], colorCounts: Map }
+
+  // ============ 网格尺寸选择 ============
+  function setActiveSize(size) {
+    currentGridSize = size;
+    sizeOptions.querySelectorAll('.size-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.size) === size);
+    });
+    customSizeInput.value = size;
+  }
+
+  sizeOptions.addEventListener('click', (e) => {
+    const btn = e.target.closest('.size-btn');
+    if (!btn) return;
+    const size = parseInt(btn.dataset.size);
+    setActiveSize(size);
+    if (currentImage) generatePattern();
+  });
+
+  customSizeInput.addEventListener('change', () => {
+    let v = parseInt(customSizeInput.value);
+    if (isNaN(v) || v < 5) v = 50;
+    if (v > 400) v = 400;
+    customSizeInput.value = v;
+    setActiveSize(v);
+    if (currentImage) generatePattern();
+  });
+
+  // 抖动开关
+  ditherToggle.addEventListener('change', () => {
+    if (currentImage) generatePattern();
+  });
+
+  // ============ 图片上传 ============
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) loadImage(file);
+  });
+
+  // 拖拽上传
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      loadImage(file);
+    }
+  });
+
+  function loadImage(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('请上传图片文件（JPG / PNG / WebP / GIF）');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        currentImage = img;
+        // 显示缩略图
+        uploadPreview.src = ev.target.result;
+        uploadPreview.classList.remove('hidden');
+        uploadIcon.classList.add('hidden');
+        uploadText.innerHTML = '<strong>点击更换图片</strong>';
+        uploadArea.classList.add('has-image');
+        // 生成图纸
+        generatePattern();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ============ 生成拼豆图纸 ============
+  function generatePattern() {
+    if (!currentImage) return;
+
+    const N = currentGridSize;
+    const img = currentImage;
+
+    // 步骤1：将图片缩放至 N×N，提取每个像素颜色
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = N;
+    offCanvas.height = N;
+    const offCtx = offCanvas.getContext('2d');
+    // 使用 imageSmoothingEnabled 获得更准确的缩放
+    offCtx.imageSmoothingEnabled = true;
+    offCtx.imageSmoothingQuality = 'high';
+    offCtx.drawImage(img, 0, 0, N, N);
+    const imageData = offCtx.getImageData(0, 0, N, N);
+
+    // 步骤2：将每个像素映射到最接近的拼豆色（Floyd-Steinberg 抖动可选）
+    const grid = [];
+    const colorCounts = new Map();
+    const pixels = imageData.data;
+    const useDither = ditherToggle.checked;
+
+    // 复制像素数据到浮点数组（用于误差扩散）
+    const srcR = new Float32Array(N * N);
+    const srcG = new Float32Array(N * N);
+    const srcB = new Float32Array(N * N);
+
+    for (let i = 0; i < N * N; i++) {
+      const idx = i * 4;
+      const a = pixels[idx + 3];
+      if (a < 128) {
+        srcR[i] = 255; srcG[i] = 255; srcB[i] = 255;
+      } else {
+        srcR[i] = pixels[idx];
+        srcG[i] = pixels[idx + 1];
+        srcB[i] = pixels[idx + 2];
+      }
+    }
+
+    for (let row = 0; row < N; row++) {
+      const rowData = [];
+      for (let col = 0; col < N; col++) {
+        const i = row * N + col;
+        let rr = Math.max(0, Math.min(255, Math.round(srcR[i])));
+        let gg = Math.max(0, Math.min(255, Math.round(srcG[i])));
+        let bb = Math.max(0, Math.min(255, Math.round(srcB[i])));
+
+        const bead = findClosestBead(rr, gg, bb);
+        rowData.push(bead);
+        const key = bead.hex;
+        colorCounts.set(key, (colorCounts.get(key) || 0) + 1);
+
+        // Floyd-Steinberg 误差扩散
+        if (useDither) {
+          const errR = rr - bead.r;
+          const errG = gg - bead.g;
+          const errB = bb - bead.b;
+
+          if (col + 1 < N) {
+            const ni = row * N + (col + 1);
+            srcR[ni] += errR * 7/16;
+            srcG[ni] += errG * 7/16;
+            srcB[ni] += errB * 7/16;
+          }
+          if (row + 1 < N) {
+            if (col - 1 >= 0) {
+              const ni = (row + 1) * N + (col - 1);
+              srcR[ni] += errR * 3/16;
+              srcG[ni] += errG * 3/16;
+              srcB[ni] += errB * 3/16;
+            }
+            const ni = (row + 1) * N + col;
+            srcR[ni] += errR * 5/16;
+            srcG[ni] += errG * 5/16;
+            srcB[ni] += errB * 5/16;
+            if (col + 1 < N) {
+              const ni = (row + 1) * N + (col + 1);
+              srcR[ni] += errR * 1/16;
+              srcG[ni] += errG * 1/16;
+              srcB[ni] += errB * 1/16;
+            }
+          }
+        }
+      }
+      grid.push(rowData);
+    }
+
+    currentGridData = { grid, colorCounts };
+
+    // 渲染
+    renderGrid(grid, N);
+    renderLegend(colorCounts, N);
+
+    // 显示结果区
+    resultsSection.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    originalImage.src = currentImage.src;
+
+    // 更新统计
+    statGrid.textContent = `${N}×${N}`;
+    statColors.textContent = colorCounts.size;
+    statTotal.textContent = N * N;
+  }
+
+  // ============ 渲染网格 ============
+  function renderGrid(grid, N) {
+    const isMobile = window.innerWidth < 768;
+    const displayCellSize = isMobile ? Math.max(8, Math.floor(380 / N)) : Math.max(5, Math.floor(640 / N));
+    const showLabels = N <= 80; // 格子太小就不标坐标
+    const labelSize = showLabels ? 28 : 0;
+    const gridPx = N * displayCellSize;
+    const canvasW = labelSize + gridPx;
+    const canvasH = labelSize + gridPx;
+    const lineWidth = displayCellSize > 6 ? 1 : 0.5;
+
+    const canvas = gridCanvas;
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    // 不限制宽度，让画布以原生分辨率显示，手机横向滚动查看
+    canvas.style.width = (isMobile && canvasW > 380) ? '380px' : Math.min(canvasW, 640) + 'px';
+    canvas.style.height = 'auto';
+
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // 白色背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    const ox = labelSize, oy = labelSize;
+
+    // 绘制每个格子
+    for (let row = 0; row < N; row++) {
+      for (let col = 0; col < N; col++) {
+        const bead = grid[row][col];
+        ctx.fillStyle = bead.hex;
+        ctx.fillRect(ox + col * displayCellSize, oy + row * displayCellSize, displayCellSize, displayCellSize);
+      }
+    }
+
+    // 绘制网格线
+    ctx.strokeStyle = '#d4d4d8';
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const pos = ox + i * displayCellSize;
+      ctx.moveTo(pos + 0.5, oy);
+      ctx.lineTo(pos + 0.5, oy + gridPx);
+      const yPos = oy + i * displayCellSize;
+      ctx.moveTo(ox, yPos + 0.5);
+      ctx.lineTo(ox + gridPx, yPos + 0.5);
+    }
+    ctx.stroke();
+
+    // 行列标号
+    if (showLabels) {
+      ctx.fillStyle = '#64748b';
+      const labelFont = Math.max(8, Math.min(11, displayCellSize - 1));
+      ctx.font = `bold ${labelFont}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // 列号 (顶部)
+      for (let col = 0; col < N; col++) {
+        const cx = ox + col * displayCellSize + displayCellSize / 2;
+        ctx.fillText(String(col + 1), cx, oy / 2);
+      }
+
+      // 行号 (左侧)
+      ctx.textAlign = 'center';
+      for (let row = 0; row < N; row++) {
+        const cy = oy + row * displayCellSize + displayCellSize / 2;
+        ctx.fillText(String(row + 1), ox / 2, cy);
+      }
+    }
+  }
+
+  // ============ 渲染图例 ============
+  function renderLegend(colorCounts, N) {
+    // 按数量降序排列
+    const entries = [];
+    for (const [hex, count] of colorCounts) {
+      const def = beadPalette.find(b => b.hex === hex);
+      entries.push({ ...def, count });
+    }
+    entries.sort((a, b) => b.count - a.count);
+
+    legendGrid.innerHTML = entries.map(e => `
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:${e.hex}"></div>
+        <span class="legend-code">${e.code}</span>
+        <span class="legend-name">${e.name}</span>
+        <span class="legend-count">×${e.count}</span>
+      </div>
+    `).join('');
+  }
+
+  // ============ 导出 PNG ============
+  exportBtn.addEventListener('click', () => {
+    if (!currentGridData) return;
+
+    const { grid, colorCounts } = currentGridData;
+    const N = grid.length;
+
+    // 根据网格密度自适应格子大小，确保编号可读
+    let cellSize, fontSize;
+    if (N <= 40)       { cellSize = 40; fontSize = 13; }
+    else if (N <= 60)  { cellSize = 32; fontSize = 10; }
+    else if (N <= 80)  { cellSize = 28; fontSize = 9; }
+    else if (N <= 120) { cellSize = 22; fontSize = 8; }
+    else               { cellSize = 18; fontSize = 7; }
+
+    const showCodes = cellSize >= 20; // 格子太小就不写编号
+    const showExportLabels = true; // 导出始终带坐标
+    const exportLabelSize = showExportLabels ? 34 : 0;
+    const lineWidth = 1;
+    const gridPx = N * cellSize;
+
+    // 图例区
+    const legendEntries = [];
+    for (const [hex, count] of colorCounts) {
+      const def = beadPalette.find(b => b.hex === hex);
+      legendEntries.push({ ...def, count });
+    }
+    legendEntries.sort((a, b) => b.count - a.count);
+
+    const legendCols = 8;
+    const legendRows = Math.ceil(legendEntries.length / legendCols);
+    const legendItemW = 130;
+    const legendItemH = 28;
+    const legendPad = 20;
+    const legendW = legendCols * legendItemW + legendPad * 2;
+    const legendH = legendRows * legendItemH + legendPad * 2 + 40; // 40 for title
+
+    // 标题区
+    const titleH = 50;
+    const labelPad = showExportLabels ? exportLabelSize : 0;
+    const totalW = Math.max(labelPad + gridPx, legendW);
+    const totalH = titleH + labelPad + gridPx + 12 + legendH;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = totalW;
+    exportCanvas.height = totalH;
+    const ctx = exportCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // 白色背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    // ---- 标题 ----
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`拼豆图纸  ${N}×${N}  |  用色 ${colorCounts.size} 种  |  总豆数 ${N*N}`, 20, 34);
+
+    // ---- 网格 ----
+    const offsetX = Math.floor((totalW - labelPad - gridPx) / 2) + labelPad;
+    const gridY = titleH + labelPad;
+
+    // 辅助函数：判断文字颜色
+    function getTextColor(hex) {
+      const r = parseInt(hex.slice(1,3), 16);
+      const g = parseInt(hex.slice(3,5), 16);
+      const b = parseInt(hex.slice(5,7), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#1a1a1a' : '#ffffff';
+    }
+
+    for (let row = 0; row < N; row++) {
+      for (let col = 0; col < N; col++) {
+        const bead = grid[row][col];
+        const x = offsetX + col * cellSize;
+        const y = gridY + row * cellSize;
+
+        ctx.fillStyle = bead.hex;
+        ctx.fillRect(x, y, cellSize, cellSize);
+
+        // 写入编号
+        if (showCodes) {
+          ctx.fillStyle = getTextColor(bead.hex);
+          ctx.font = `bold ${fontSize}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(bead.code, x + cellSize/2, y + cellSize/2);
+        }
+      }
+    }
+
+    // 网格线
+    ctx.strokeStyle = '#d4d4d8';
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const pos = offsetX + i * cellSize;
+      ctx.moveTo(pos + 0.5, gridY);
+      ctx.lineTo(pos + 0.5, gridY + gridPx);
+      const yPos = gridY + i * cellSize;
+      ctx.moveTo(offsetX, yPos + 0.5);
+      ctx.lineTo(offsetX + gridPx, yPos + 0.5);
+    }
+    ctx.stroke();
+
+    // 行列坐标标签
+    if (showExportLabels) {
+      const labelFont = Math.max(9, Math.min(14, cellSize - 2));
+      ctx.fillStyle = '#374151';
+      ctx.font = `bold ${labelFont}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // 列号（顶部）
+      for (let col = 0; col < N; col++) {
+        const cx = offsetX + col * cellSize + cellSize / 2;
+        const cy = gridY - exportLabelSize / 2;
+        ctx.fillText(String(col + 1), cx, cy);
+      }
+
+      // 行号（左侧）
+      for (let row = 0; row < N; row++) {
+        const cx = offsetX - exportLabelSize / 2;
+        const cy = gridY + row * cellSize + cellSize / 2;
+        ctx.fillText(String(row + 1), cx, cy);
+      }
+    }
+
+    // ---- 图例 ----
+    const legendY = gridY + gridPx + 12;
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 16px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('色卡图例', legendPad, legendY + 28);
+
+    const legendStartY = legendY + 44;
+    for (let i = 0; i < legendEntries.length; i++) {
+      const e = legendEntries[i];
+      const lx = legendPad + (i % legendCols) * legendItemW;
+      const ly = legendStartY + Math.floor(i / legendCols) * legendItemH;
+
+      // 色块
+      ctx.fillStyle = e.hex;
+      ctx.fillRect(lx, ly, 22, 22);
+      ctx.strokeStyle = '#d4d4d8';
+      ctx.strokeRect(lx, ly, 22, 22);
+
+      // 编号
+      ctx.fillStyle = '#6366f1';
+      ctx.font = 'bold 10px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(e.code, lx + 26, ly);
+
+      // 名称
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = '11px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillText(`${e.name} ×${e.count}`, lx + 26, ly + 12);
+    }
+
+    // 触发下载
+    exportCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `拼豆图纸_${N}x${N}_MARD色号.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  });
+
+  // ============ 保存到手机相册 ============
+  saveToPhoneBtn.addEventListener('click', () => {
+    if (!currentGridData) return;
+
+    const { grid } = currentGridData;
+    const N = grid.length;
+    // 高分辨率导出，手机上更清晰
+    const cellSize = N <= 50 ? 40 : (N <= 80 ? 30 : (N <= 120 ? 22 : 16));
+    const labelSize = 34;
+    const gridPx = N * cellSize;
+    const canvasW = labelSize + gridPx;
+    const canvasH = labelSize + gridPx;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext('2d');
+
+    // 白底
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    const ox = labelSize, oy = labelSize;
+
+    // 画格子
+    for (let row = 0; row < N; row++) {
+      for (let col = 0; col < N; col++) {
+        const bead = grid[row][col];
+        ctx.fillStyle = bead.hex;
+        ctx.fillRect(ox + col * cellSize, oy + row * cellSize, cellSize, cellSize);
+        // 编号
+        if (cellSize >= 20) {
+          const r = parseInt(bead.hex.slice(1,3), 16);
+          const g = parseInt(bead.hex.slice(3,5), 16);
+          const b = parseInt(bead.hex.slice(5,7), 16);
+          ctx.fillStyle = (r*299 + g*587 + b*114)/1000 > 140 ? '#1a1a1a' : '#ffffff';
+          ctx.font = `bold ${Math.max(8, cellSize*0.38)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(bead.code, ox + col * cellSize + cellSize/2, oy + row * cellSize + cellSize/2);
+        }
+      }
+    }
+
+    // 网格线
+    ctx.strokeStyle = '#d4d4d8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const pos = ox + i * cellSize;
+      ctx.moveTo(pos + 0.5, oy); ctx.lineTo(pos + 0.5, oy + gridPx);
+      const yPos = oy + i * cellSize;
+      ctx.moveTo(ox, yPos + 0.5); ctx.lineTo(ox + gridPx, yPos + 0.5);
+    }
+    ctx.stroke();
+
+    // 坐标
+    ctx.fillStyle = '#374151';
+    const labelFont = Math.max(10, cellSize - 2);
+    ctx.font = `bold ${labelFont}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let col = 0; col < N; col++) {
+      ctx.fillText(String(col+1), ox + col*cellSize + cellSize/2, oy - labelSize/2);
+    }
+    for (let row = 0; row < N; row++) {
+      ctx.fillText(String(row+1), ox - labelSize/2, oy + row*cellSize + cellSize/2);
+    }
+
+    // 生成 blob 并触发下载/分享
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+
+      // 尝试 Web Share API（iOS/Android 可直接保存到相册）
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `拼豆图纸_${N}x${N}.png`, { type: 'image/png' });
+        const shareData = { files: [file], title: '拼豆图纸' };
+        if (navigator.canShare(shareData)) {
+          navigator.share(shareData).catch(() => fallbackDownload());
+          return;
+        }
+      }
+      fallbackDownload();
+
+      function fallbackDownload() {
+        // 打开图片预览，长按即可保存到相册
+        const win = window.open('');
+        if (win) {
+          win.document.write(`<!DOCTYPE html>
+            <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>长按保存图片</title>
+            <style>*{margin:0;padding:0;background:#222;}
+            img{width:100%;display:block;}
+            p{color:#fff;text-align:center;padding:12px;font-size:14px;font-family:sans-serif;position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);z-index:1;}</style></head>
+            <body>
+            <p>👆 长按图片 → 保存到相册</p>
+            <img src="${url}" alt="拼豆图纸">
+            </body></html>`);
+          win.document.close();
+        } else {
+          // 降级：直接下载
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `拼豆图纸_${N}x${N}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      }
+    }, 'image/png');
+  });
+
+  // ============ 复制文字图纸 ============
+  copyTextBtn.addEventListener('click', () => {
+    if (!currentGridData) return;
+
+    const { grid } = currentGridData;
+    const N = grid.length;
+    const lines = [];
+
+    for (let row = 0; row < N; row++) {
+      const codes = [];
+      for (let col = 0; col < N; col++) {
+        codes.push(grid[row][col].code);
+      }
+      lines.push(`第${String(row + 1).padStart(3, ' ')}行: ${codes.join(' ')}`);
+    }
+
+    const text = `MARD 拼豆图纸 ${N}×${N}\n${'='.repeat(40)}\n${lines.join('\n')}\n${'='.repeat(40)}\n共 ${N*N} 颗豆子`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      // 临时提示
+      const origText = copyTextBtn.textContent;
+      copyTextBtn.textContent = '✅ 已复制！';
+      copyTextBtn.style.background = '#22c55e';
+      copyTextBtn.style.color = '#fff';
+      copyTextBtn.style.borderColor = '#22c55e';
+      setTimeout(() => {
+        copyTextBtn.textContent = origText;
+        copyTextBtn.style.background = '';
+        copyTextBtn.style.color = '';
+        copyTextBtn.style.borderColor = '';
+      }, 1500);
+    }).catch(() => {
+      alert('复制失败，请手动复制');
+    });
+  });
+
+  // ============ 复制边框清单 ============
+  copyBorderBtn.addEventListener('click', () => {
+    if (!currentGridData) return;
+
+    const { grid } = currentGridData;
+    const N = grid.length;
+    const lines = [];
+    let totalBeads = 0;
+
+    lines.push(`MARD 拼豆边框清单 ${N}×${N}`);
+    lines.push('═'.repeat(50));
+    lines.push('');
+
+    // 上边框（第1行）
+    lines.push('【上边框 — 第 1 行】');
+    const topRow = [];
+    for (let col = 0; col < N; col++) {
+      topRow.push(`${grid[0][col].code}`);
+      totalBeads++;
+    }
+    lines.push(topRow.join(' '));
+    lines.push('');
+
+    // 下边框（最后一行）
+    lines.push(`【下边框 — 第 ${N} 行】`);
+    const bottomRow = [];
+    for (let col = 0; col < N; col++) {
+      bottomRow.push(`${grid[N-1][col].code}`);
+      totalBeads++;
+    }
+    lines.push(bottomRow.join(' '));
+    lines.push('');
+
+    // 左边框（第1列，跳过首尾行）
+    if (N > 2) {
+      lines.push('【左边框 — 第 1 列】（不含四角）');
+      const leftCol = [];
+      for (let row = 1; row < N - 1; row++) {
+        leftCol.push(`第${row+1}行: ${grid[row][0].code}`);
+        totalBeads++;
+      }
+      lines.push(leftCol.join('  '));
+      lines.push('');
+    }
+
+    // 右边框（最后一列，跳过首尾行）
+    if (N > 2) {
+      lines.push(`【右边框 — 第 ${N} 列】（不含四角）`);
+      const rightCol = [];
+      for (let row = 1; row < N - 1; row++) {
+        rightCol.push(`第${row+1}行: ${grid[row][N-1].code}`);
+        totalBeads++;
+      }
+      lines.push(rightCol.join('  '));
+      lines.push('');
+    }
+
+    lines.push('═'.repeat(50));
+    lines.push(`边框共计 ${totalBeads} 颗豆子（网格 ${N}×${N} = ${N*N} 颗）`);
+
+    const text = lines.join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      const origText = copyBorderBtn.textContent;
+      copyBorderBtn.textContent = '✅ 已复制！';
+      copyBorderBtn.style.background = '#f97316';
+      copyBorderBtn.style.color = '#fff';
+      copyBorderBtn.style.borderColor = '#f97316';
+      setTimeout(() => {
+        copyBorderBtn.textContent = origText;
+        copyBorderBtn.style.background = '';
+        copyBorderBtn.style.color = '';
+        copyBorderBtn.style.borderColor = '';
+      }, 1500);
+    }).catch(() => {
+      alert('复制失败，请手动复制');
+    });
+  });
+
+  // ============ 初始化 ============
+  console.log('🧩 拼豆图纸生成器已就绪');
+  console.log('  内置 MARD 融合豆 291 色拼豆色板');
+  console.log('  支持 30–200 网格密度 + 自定义数值');
+  console.log('  上传图片即可开始！');
+})();
+</script>
+
+</body>
+</html>
