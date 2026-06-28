@@ -2123,24 +2123,10 @@
     }).catch(() => {});
   });
 
-  // ===== 管理员入口锁 =====
-  // 规则：只有你自己（知道 ?admin 的人）能看到 ⚙️
-  // 老板打开专属链接时，⚙️ 完全隐藏
+  // ===== 管理员入口锁（暂开） =====
   const urlParams = new URLSearchParams(location.search);
-  const isAdmin = urlParams.has('admin');
-  const hasStoreParams = urlParams.has('name') || urlParams.has('theme');
-
-  // ⚙️ 仅在管理员模式或默认首页显示；老板链接里彻底隐藏
-  if (isAdmin || (!hasStoreParams && location.search === '')) {
-    shopToggle.style.display = 'flex';
-  } else {
-    shopToggle.style.display = 'none';
-  }
-
-  // 如果老板打开的是专属链接，页面上方加小标记（老板不可见 ⚙️）
-  if (hasStoreParams && !isAdmin) {
-    console.log('🏪 店铺定制模式 - 后台已锁定');
-  }
+  // 近期全部可见，等开始谈店再锁
+  shopToggle.style.display = 'flex';
 
   // Load settings from URL params on startup (overrides localStorage)
   (function initFromUrl() {
