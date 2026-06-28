@@ -399,17 +399,95 @@
   }
 
   .hidden { display: none !important; }
+
+  /* Shop Mode */
+  .shop-header-name { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .shop-header-slogan { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
+  .shop-logo-img { max-width: 80px; max-height: 80px; border-radius: 12px; margin-bottom: 4px; }
+
+  .shop-settings-toggle { position: fixed; top: 16px; right: 16px; z-index: 999;
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 22px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .shop-settings-toggle:hover { transform: scale(1.1); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+
+  .shop-panel-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center; }
+  .shop-panel { background: #fff; border-radius: var(--radius); padding: 28px 24px;
+    max-width: 460px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+  .shop-panel h3 { font-size: 18px; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .shop-field { margin-bottom: 16px; }
+  .shop-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+  .shop-field input, .shop-field select { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; transition: all .2s; }
+  .shop-field input:focus, .shop-field select:focus { outline: none; border-color: var(--primary); }
+  .shop-field-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+  .shop-panel-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-danger { background: #fff; color: #ef4444; border: 2px solid #ef4444; }
+  .btn-danger:hover { background: #fef2f2; }
+  .btn-success { background: #22c55e; color: #fff; border: none; }
+  .shop-footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 20px 0 0; }
+  .shop-footer-contact { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 6px; font-size: 13px; }
+  .shop-footer-contact span { color: var(--primary); }
 </style>
 </head>
 <body>
 
 <div class="container">
 
+  <!-- Shop Settings Toggle -->
+  <button class="shop-settings-toggle" id="shopSettingsToggle" title="店铺设置">⚙️</button>
+
+  <!-- Shop Settings Panel -->
+  <div class="shop-panel-overlay hidden" id="shopPanelOverlay">
+    <div class="shop-panel">
+      <h3>🏪 店铺定制</h3>
+      <div class="shop-field">
+        <label>店铺Logo（URL或上传图片）</label>
+        <input type="text" id="shopLogo" placeholder="留空则显示默认 🧩 图标">
+        <div class="shop-field-hint">输入图片URL，或粘贴图床链接</div>
+      </div>
+      <div class="shop-field">
+        <label>店铺名称</label>
+        <input type="text" id="shopName" placeholder="拼豆图纸生成器">
+      </div>
+      <div class="shop-field">
+        <label>副标题/标语</label>
+        <input type="text" id="shopSlogan" placeholder="上传图片，自动生成像素化拼豆图纸">
+      </div>
+      <div class="shop-field">
+        <label>联系人/门店</label>
+        <input type="text" id="shopContact" placeholder="如：张老板 📞138xxxx">
+      </div>
+      <div class="shop-field">
+        <label>地址/微信</label>
+        <input type="text" id="shopAddress" placeholder="如：XX市XX路XX号 微信：xxx">
+      </div>
+      <div class="shop-field">
+        <label>页面主题色</label>
+        <select id="shopTheme">
+          <option value="6366f1">默认紫蓝</option>
+          <option value="f97316">活力橙</option>
+          <option value="22c55e">清新绿</option>
+          <option value="ec4899">甜美粉</option>
+          <option value="3b82f6">天空蓝</option>
+          <option value="a855f7">梦幻紫</option>
+          <option value="14b8a6">蒂芙尼蓝</option>
+          <option value="ef4444">热情红</option>
+        </select>
+      </div>
+      <div class="shop-panel-actions">
+        <button class="btn btn-success" id="shopSaveBtn">✅ 应用</button>
+        <button class="btn btn-outline" id="shopResetBtn">🔄 恢复默认</button>
+        <button class="btn btn-danger" id="shopCloseBtn">✕ 取消</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
-  <div class="header">
-    <span class="icon">🧩</span>
-    <h1>拼豆图纸生成器</h1>
-    <p>上传图片，自动生成像素化拼豆图纸</p>
+  <div class="header" id="shopHeader">
+    <img class="shop-logo-img hidden" id="shopLogoImg" alt="logo">
+    <span class="icon" id="shopIcon">🧩</span>
+    <h1 class="shop-header-name" id="shopHeaderName">拼豆图纸生成器</h1>
+    <p class="shop-header-slogan" id="shopHeaderSlogan">上传图片，自动生成像素化拼豆图纸</p>
   </div>
 
   <!-- Upload & Settings Card -->
@@ -484,7 +562,10 @@
     <p>上传一张图片来开始制作拼豆图纸吧！</p>
   </div>
 
-  <div class="footer">拼豆图纸生成器 · 纯前端实现 · 无需网络</div>
+  <div class="footer shop-footer" id="shopFooter">
+    <div>拼豆图纸生成器 · 纯前端实现 · 无需网络</div>
+    <div class="shop-footer-contact hidden" id="shopFooterContact"></div>
+  </div>
 
 </div>
 
@@ -1525,10 +1606,116 @@
     });
   });
 
+  // ============ 店铺定制 ============
+  const SHOP_DEFAULTS = {
+    logo: '', name: '拼豆图纸生成器', slogan: '上传图片，自动生成像素化拼豆图纸',
+    contact: '', address: '', theme: '6366f1'
+  };
+
+  // DOM refs for shop
+  const shopToggle = document.getElementById('shopSettingsToggle');
+  const shopOverlay = document.getElementById('shopPanelOverlay');
+  const shopNameInp = document.getElementById('shopName');
+  const shopSloganInp = document.getElementById('shopSlogan');
+  const shopLogoInp = document.getElementById('shopLogo');
+  const shopContactInp = document.getElementById('shopContact');
+  const shopAddressInp = document.getElementById('shopAddress');
+  const shopThemeSel = document.getElementById('shopTheme');
+  const shopHeaderName = document.getElementById('shopHeaderName');
+  const shopHeaderSlogan = document.getElementById('shopHeaderSlogan');
+  const shopIcon = document.getElementById('shopIcon');
+  const shopLogoImg = document.getElementById('shopLogoImg');
+  const shopFooter = document.getElementById('shopFooter');
+  const shopFooterContact = document.getElementById('shopFooterContact');
+
+  function loadShopSettings() {
+    try {
+      const raw = localStorage.getItem('bead-shop-settings');
+      return raw ? { ...SHOP_DEFAULTS, ...JSON.parse(raw) } : { ...SHOP_DEFAULTS };
+    } catch(e) { return { ...SHOP_DEFAULTS }; }
+  }
+
+  function saveShopSettings(s) {
+    try { localStorage.setItem('bead-shop-settings', JSON.stringify(s)); } catch(e) {}
+  }
+
+  function applyShopSettings(s) {
+    // Header
+    shopHeaderName.textContent = s.name || SHOP_DEFAULTS.name;
+    shopHeaderSlogan.textContent = s.slogan || SHOP_DEFAULTS.slogan;
+    // Logo
+    if (s.logo && s.logo.trim()) {
+      shopLogoImg.src = s.logo.trim();
+      shopLogoImg.classList.remove('hidden');
+      shopIcon.classList.add('hidden');
+    } else {
+      shopLogoImg.classList.add('hidden');
+      shopIcon.classList.remove('hidden');
+    }
+    // Theme
+    const themeColor = s.theme || SHOP_DEFAULTS.theme;
+    document.documentElement.style.setProperty('--primary', '#' + themeColor);
+    document.documentElement.style.setProperty('--primary-hover', '#' + themeColor + 'dd');
+    // Forms
+    shopNameInp.value = s.name || '';
+    shopSloganInp.value = s.slogan || '';
+    shopLogoInp.value = s.logo || '';
+    shopContactInp.value = s.contact || '';
+    shopAddressInp.value = s.address || '';
+    shopThemeSel.value = s.theme || SHOP_DEFAULTS.theme;
+    // Footer
+    if (s.contact || s.address) {
+      const parts = [];
+      if (s.contact) parts.push('👤 ' + s.contact);
+      if (s.address) parts.push('📍 ' + s.address);
+      shopFooterContact.innerHTML = parts.map(p => '<span>' + p + '</span>').join('');
+      shopFooterContact.classList.remove('hidden');
+    } else {
+      shopFooterContact.classList.add('hidden');
+    }
+    // Page title
+    document.title = (s.name || SHOP_DEFAULTS.name) + ' - 拼豆图纸生成器';
+  }
+
+  // init
+  let currentShopSettings = loadShopSettings();
+  applyShopSettings(currentShopSettings);
+
+  // Toggle panel
+  shopToggle.addEventListener('click', () => shopOverlay.classList.remove('hidden'));
+  document.getElementById('shopCloseBtn').addEventListener('click', () => shopOverlay.classList.add('hidden'));
+  shopOverlay.addEventListener('click', (e) => {
+    if (e.target === shopOverlay) shopOverlay.classList.add('hidden');
+  });
+
+  // Save
+  document.getElementById('shopSaveBtn').addEventListener('click', () => {
+    const s = {
+      logo: shopLogoInp.value.trim(),
+      name: shopNameInp.value.trim(),
+      slogan: shopSloganInp.value.trim(),
+      contact: shopContactInp.value.trim(),
+      address: shopAddressInp.value.trim(),
+      theme: shopThemeSel.value,
+    };
+    saveShopSettings(s);
+    applyShopSettings(s);
+    shopOverlay.classList.add('hidden');
+  });
+
+  // Reset
+  document.getElementById('shopResetBtn').addEventListener('click', () => {
+    if (!confirm('确定恢复默认设置吗？')) return;
+    saveShopSettings({ ...SHOP_DEFAULTS });
+    applyShopSettings({ ...SHOP_DEFAULTS });
+    shopOverlay.classList.add('hidden');
+  });
+
   // ============ 初始化 ============
   console.log('🧩 拼豆图纸生成器已就绪');
   console.log('  内置 MARD 融合豆 291 色拼豆色板');
   console.log('  支持 30–200 网格密度 + 自定义数值');
+  console.log('  🏪 店铺定制模式：点击右上角 ⚙️ 设置');
   console.log('  上传图片即可开始！');
 })();
 </script>
