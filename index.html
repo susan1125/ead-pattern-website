@@ -539,6 +539,14 @@
       <input type="color" id="gridLineCustomColor" value="#d4d4d8"
         style="width:32px;height:32px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;padding:0;display:none;"
         title="自定义网格线颜色">
+      <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格线：</label>
+      <select id="majorGridSpacing" style="padding:6px 10px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
+        <option value="0" selected>无</option>
+        <option value="5">每5格</option>
+        <option value="10">每10格</option>
+        <option value="20">每20格</option>
+        <option value="25">每25格</option>
+      </select>
     </div>
 
     <!-- 色板选择 -->
@@ -999,6 +1007,7 @@
   const ditherToggle = document.getElementById('ditherToggle');
   const gridLineStyle = document.getElementById('gridLineStyle');
   const gridLineCustom = document.getElementById('gridLineCustomColor');
+  const majorGridSpacing = document.getElementById('majorGridSpacing');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1051,6 +1060,9 @@
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
   gridLineCustom.addEventListener('input', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+  majorGridSpacing.addEventListener('change', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
@@ -1299,6 +1311,37 @@
     statTotal.textContent = N * N;
   }
 
+  // ============ 通用网格线绘制 ============
+  function drawAllGridLines(ctx, ox, oy, gridPx, N, cellSize) {
+    const gridColor = getGridLineColor();
+    if (gridColor === null) return;
+    // 细线
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = cellSize > 10 ? 1 : 0.5;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const pos = ox + i * cellSize;
+      ctx.moveTo(pos + 0.5, oy); ctx.lineTo(pos + 0.5, oy + gridPx);
+      const yPos = oy + i * cellSize;
+      ctx.moveTo(ox, yPos + 0.5); ctx.lineTo(ox + gridPx, yPos + 0.5);
+    }
+    ctx.stroke();
+    // 大格粗线
+    const majorN = parseInt(majorGridSpacing.value);
+    if (majorN > 0 && N >= majorN) {
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
+      ctx.beginPath();
+      for (let i = 0; i <= N; i += majorN) {
+        const pos = ox + i * cellSize;
+        ctx.moveTo(pos, oy); ctx.lineTo(pos, oy + gridPx);
+        const yPos = oy + i * cellSize;
+        ctx.moveTo(ox, yPos); ctx.lineTo(ox + gridPx, yPos);
+      }
+      ctx.stroke();
+    }
+  }
+
   // ============ 渲染网格 ============
   function renderGrid(grid, N) {
     const isMobile = window.innerWidth < 768;
@@ -1335,22 +1378,8 @@
       }
     }
 
-    // 绘制网格线（可开关）
-    const gridColor = getGridLineColor();
-    if (gridColor !== null) {
-      ctx.strokeStyle = gridColor;
-      ctx.lineWidth = lineWidth;
-      ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const pos = ox + i * displayCellSize;
-        ctx.moveTo(pos + 0.5, oy);
-        ctx.lineTo(pos + 0.5, oy + gridPx);
-        const yPos = oy + i * displayCellSize;
-        ctx.moveTo(ox, yPos + 0.5);
-        ctx.lineTo(ox + gridPx, yPos + 0.5);
-      }
-      ctx.stroke();
-    }
+    // 绘制网格线
+    drawAllGridLines(ctx, ox, oy, gridPx, N, displayCellSize);
 
     // 行列标号
     if (showLabels) {
@@ -1487,21 +1516,7 @@
     }
 
     // 网格线（跟随开关）
-    const gridColor = getGridLineColor();
-    if (gridColor !== null) {
-      ctx.strokeStyle = gridColor;
-      ctx.lineWidth = lineWidth;
-      ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const pos = offsetX + i * cellSize;
-        ctx.moveTo(pos + 0.5, gridY);
-        ctx.lineTo(pos + 0.5, gridY + gridPx);
-        const yPos = gridY + i * cellSize;
-        ctx.moveTo(offsetX, yPos + 0.5);
-        ctx.lineTo(offsetX + gridPx, yPos + 0.5);
-      }
-      ctx.stroke();
-    }
+    drawAllGridLines(ctx, offsetX, gridY, gridPx, N, cellSize);
 
     // 行列坐标标签
     if (showExportLabels) {
@@ -1616,16 +1631,7 @@
     }
 
     // 网格线
-    ctx.strokeStyle = '#d4d4d8';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let i = 0; i <= N; i++) {
-      const pos = ox + i * cellSize;
-      ctx.moveTo(pos + 0.5, oy); ctx.lineTo(pos + 0.5, oy + gridPx);
-      const yPos = oy + i * cellSize;
-      ctx.moveTo(ox, yPos + 0.5); ctx.lineTo(ox + gridPx, yPos + 0.5);
-    }
-    ctx.stroke();
+    drawAllGridLines(ctx, ox, oy, gridPx, N, cellSize);
 
     // 坐标
     ctx.fillStyle = '#374151';
