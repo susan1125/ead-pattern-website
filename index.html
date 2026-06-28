@@ -527,18 +527,11 @@
         抖色优化
       </label>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:6px;">网格线：</label>
-      <select id="gridLineStyle" style="padding:6px 10px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
-        <option value="#d4d4d8" selected>浅灰线</option>
-        <option value="#000000">纯黑线</option>
-        <option value="#ffffff">白色线</option>
-        <option value="#94a3b8">深灰线</option>
-        <option value="#6366f1">主题色线</option>
-        <option value="none">无网格线</option>
-        <option value="custom">✨ 自定义颜色</option>
-      </select>
+      <span id="gridLinePalette" style="display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;">
+      </span>
       <input type="color" id="gridLineCustomColor" value="#d4d4d8"
-        style="width:32px;height:32px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;padding:0;display:none;"
-        title="自定义网格线颜色">
+        style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
+        title="自定义颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格线：</label>
       <select id="majorGridSpacing" style="padding:6px 10px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="0" selected>无</option>
@@ -1008,7 +1001,7 @@
   const copyBorderBtn = document.getElementById('copyBorderBtn');
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
-  const gridLineStyle = document.getElementById('gridLineStyle');
+  const gridLinePalette = document.getElementById('gridLinePalette');
   const gridLineCustom = document.getElementById('gridLineCustomColor');
   const majorGridSpacing = document.getElementById('majorGridSpacing');
   const majorGridCustom = document.getElementById('majorGridCustom');
@@ -1047,23 +1040,72 @@
     if (currentImage) generatePattern();
   });
 
-  // 获取当前网格线颜色（none=不画线）
+  // 调色盘预设色（常见网格线颜色）
+  const GRID_LINE_PRESETS = [
+    { color: '#d4d4d8', label: '浅灰' },
+    { color: '#94a3b8', label: '深灰' },
+    { color: '#64748b', label: '石板' },
+    { color: '#000000', label: '纯黑' },
+    { color: '#ffffff', label: '白色' },
+    { color: '#6366f1', label: '主题' },
+    { color: 'none', label: '关' },
+  ];
+  let selectedGridColor = '#d4d4d8';
+
+  // 构建调色盘
+  GRID_LINE_PRESETS.forEach((p, i) => {
+    const btn = document.createElement('span');
+    if (p.color === 'none') {
+      btn.innerHTML = '✕';
+      btn.title = '无网格线';
+      Object.assign(btn.style, {
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer',
+        border: '2px solid #e2e8f0', background: '#fff', fontSize: '14px',
+        color: '#94a3b8', transition: 'all .15s',
+      });
+    } else {
+      btn.title = p.label;
+      Object.assign(btn.style, {
+        display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%',
+        cursor: 'pointer', background: p.color, border: '2px solid ' + (p.color === '#ffffff' ? '#e2e8f0' : p.color),
+        transition: 'all .15s', boxShadow: p.color === selectedGridColor ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
+      });
+      if (p.color === '#ffffff') btn.style.boxShadow = 'inset 0 0 0 1px #e2e8f0';
+    }
+    btn.addEventListener('click', () => {
+      selectedGridColor = p.color;
+      // 更新选中态
+      gridLinePalette.querySelectorAll('span').forEach((b, j) => {
+        const c = GRID_LINE_PRESETS[j].color;
+        if (c === 'none') {
+          b.style.boxShadow = p.color === 'none' ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
+        } else {
+          b.style.boxShadow = c === p.color ? '0 0 0 3px rgba(99,102,241,.4)' : (c === '#ffffff' ? 'inset 0 0 0 1px #e2e8f0' : 'none');
+        }
+      });
+      gridLineCustom.value = p.color === 'none' ? '#d4d4d8' : p.color;
+      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    });
+    // 初始选中态
+    if (p.color === selectedGridColor) {
+      btn.style.boxShadow = p.color === 'none' ? '0 0 0 3px rgba(99,102,241,.4)' : '0 0 0 3px rgba(99,102,241,.4)';
+    }
+    gridLinePalette.appendChild(btn);
+  });
+
   function getGridLineColor() {
-    const v = gridLineStyle.value;
-    if (v === 'none') return null;
-    if (v === 'custom') return gridLineCustom.value;
-    return v;
+    return selectedGridColor === 'none' ? null : selectedGridColor;
   }
 
   // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
     if (currentImage) generatePattern();
   });
-  gridLineStyle.addEventListener('change', () => {
-    gridLineCustom.style.display = gridLineStyle.value === 'custom' ? 'inline' : 'none';
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-  });
   gridLineCustom.addEventListener('input', () => {
+    selectedGridColor = gridLineCustom.value;
+    // 取消预设选中态
+    gridLinePalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
   majorGridSpacing.addEventListener('change', () => {
