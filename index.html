@@ -1597,6 +1597,27 @@
       newCounts.forEach((v,k) => colorCounts.set(k,v));
     }
 
+    // 去噪：替换孤立像素（周围8格全不同色 → 改成最多邻居色）
+    for (let r = 1; r < rows - 1; r++) {
+      for (let c = 1; c < cols - 1; c++) {
+        const center = grid[r][c].hex;
+        const nb = new Map();
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++)
+            if (dr || dc) { const hx = grid[r+dr][c+dc].hex; nb.set(hx, (nb.get(hx)||0)+1); }
+        let sameCount = 0;
+        nb.forEach((v,k) => { if (k === center) sameCount = v; });
+        if (sameCount <= 1 && nb.size >= 4) {
+          let bestH = center, bestC = 0;
+          nb.forEach((v,k) => { if (v > bestC && k !== center) { bestC = v; bestH = k; } });
+          grid[r][c] = activePalette.find(b => b.hex === bestH) || grid[r][c];
+          colorCounts.set(center, (colorCounts.get(center)||1) - 1);
+          colorCounts.set(bestH, (colorCounts.get(bestH)||0) + 1);
+          if (colorCounts.get(center) <= 0) colorCounts.delete(center);
+        }
+      }
+    }
+
     currentGridData = { grid, colorCounts, cols, rows };
 
     // 渲染
