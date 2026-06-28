@@ -1485,19 +1485,19 @@
   // ============ 渲染网格 ============
   function renderGrid(grid, N) {
     const isMobile = window.innerWidth < 768;
-    const displayCellSize = isMobile ? Math.max(8, Math.floor(380 / N)) : Math.max(5, Math.floor(640 / N));
-    const showLabels = N <= 80; // 格子太小就不标坐标
-    const labelSize = showLabels ? 28 : 0;
+    // 放大显示格子，提高清晰度
+    const displayWidth = isMobile ? 600 : 900;
+    const displayCellSize = Math.max(12, Math.floor(displayWidth / N));
+    const showLabels = N <= 80;
+    const labelSize = showLabels ? 32 : 0;
     const gridPx = N * displayCellSize;
     const canvasW = labelSize + gridPx;
     const canvasH = labelSize + gridPx;
-    const lineWidth = displayCellSize > 6 ? 1 : 0.5;
 
     const canvas = gridCanvas;
     canvas.width = canvasW;
     canvas.height = canvasH;
-    // 不限制宽度，让画布以原生分辨率显示，手机横向滚动查看
-    canvas.style.width = (isMobile && canvasW > 380) ? '380px' : Math.min(canvasW, 640) + 'px';
+    canvas.style.width = Math.min(canvasW, displayWidth + labelSize) + 'px';
     canvas.style.height = 'auto';
 
     const ctx = canvas.getContext('2d');
@@ -1590,11 +1590,11 @@
 
     // 根据网格密度自适应格子大小，确保编号可读
     let cellSize, fontSize;
-    if (N <= 40)       { cellSize = 40; fontSize = 13; }
-    else if (N <= 60)  { cellSize = 32; fontSize = 10; }
-    else if (N <= 80)  { cellSize = 28; fontSize = 9; }
-    else if (N <= 120) { cellSize = 22; fontSize = 8; }
-    else               { cellSize = 18; fontSize = 7; }
+    if (N <= 40)       { cellSize = 64; fontSize = 20; }
+    else if (N <= 60)  { cellSize = 48; fontSize = 16; }
+    else if (N <= 80)  { cellSize = 40; fontSize = 13; }
+    else if (N <= 120) { cellSize = 32; fontSize = 11; }
+    else               { cellSize = 26; fontSize = 9; }
 
     const showCodes = cellSize >= 20; // 格子太小就不写编号
     const showExportLabels = true; // 导出始终带坐标
@@ -1766,7 +1766,7 @@
     const { grid } = currentGridData;
     const N = grid.length;
     // 高分辨率导出，手机上更清晰
-    const cellSize = N <= 50 ? 40 : (N <= 80 ? 30 : (N <= 120 ? 22 : 16));
+    const cellSize = N <= 50 ? 56 : (N <= 80 ? 42 : (N <= 120 ? 32 : 24));
     const labelSize = 34;
     const gridPx = N * cellSize;
     const canvasW = labelSize + gridPx;
