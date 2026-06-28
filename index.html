@@ -557,7 +557,8 @@
       <select id="simplifyLevel" style="padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
         <option value="0">不限制</option>
         <option value="24">24色</option>
-        <option value="16" selected>16色</option>
+        <option value="0" selected>不限制</option>
+        <option value="16">16色</option>
         <option value="12">12色</option>
         <option value="8">8色</option>
         <option value="5">5色</option>
@@ -1614,7 +1615,7 @@
             if (dr || dc) { const hx = grid[r+dr][c+dc].hex; nb.set(hx, (nb.get(hx)||0)+1); }
         let sameCount = 0;
         nb.forEach((v,k) => { if (k === center) sameCount = v; });
-        if (sameCount <= 1 && nb.size >= 4) {
+        if (sameCount === 0 && nb.size >= 6) {
           let bestH = center, bestC = 0;
           nb.forEach((v,k) => { if (v > bestC && k !== center) { bestC = v; bestH = k; } });
           grid[r][c] = activePalette.find(b => b.hex === bestH) || grid[r][c];
