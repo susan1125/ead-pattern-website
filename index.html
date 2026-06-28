@@ -31,45 +31,30 @@
   /* 乐高砖块背景 */
   body::before {
     content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='72'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff5e99'/%3E%3Cstop offset='100%25' stop-color='%23ff3d80'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300d4ff'/%3E%3Cstop offset='100%25' stop-color='%2300a8dd'/%3E%3C/linearGradient%3E%3ClinearGradient id='y' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffe74c'/%3E%3Cstop offset='100%25' stop-color='%23ffd700'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235eff6b'/%3E%3Cstop offset='100%25' stop-color='%2333cc44'/%3E%3C/linearGradient%3E%3ClinearGradient id='p' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c45eff'/%3E%3Cstop offset='100%25' stop-color='%239933dd'/%3E%3C/linearGradient%3E%3ClinearGradient id='o' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff8c42'/%3E%3Cstop offset='100%25' stop-color='%23ee6622'/%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- row 1 --%3E%3Crect x='0' y='0' width='60' height='36' rx='4' fill='url(%23r)'/%3E%3Ccircle cx='20' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='40' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='60' y='0' width='60' height='36' rx='4' fill='url(%23b)'/%3E%3Ccircle cx='80' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='100' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3C!-- row 2 --%3E%3Crect x='-30' y='36' width='60' height='36' rx='4' fill='url(%23y)'/%3E%3Ccircle cx='-10' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='10' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='30' y='36' width='60' height='36' rx='4' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='70' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='90' y='36' width='60' height='36' rx='4' fill='url(%23p)'/%3E%3Ccircle cx='110' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='130' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3C!-- row 3 --%3E%3Crect x='0' y='72' width='60' height='36' rx='4' fill='url(%23o)'/%3E%3Ccircle cx='20' cy='82' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='40' cy='82' r='6' fill='rgba(255,255,255,.25)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='72'%3E%3Cdefs%3E%3ClinearGradient id='b1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300d4ff'/%3E%3Cstop offset='100%25' stop-color='%230099cc'/%3E%3C/linearGradient%3E%3ClinearGradient id='b2' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23208aff'/%3E%3Cstop offset='100%25' stop-color='%230066cc'/%3E%3C/linearGradient%3E%3ClinearGradient id='b3' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2344bbff'/%3E%3Cstop offset='100%25' stop-color='%232288cc'/%3E%3C/linearGradient%3E%3ClinearGradient id='y1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffe74c'/%3E%3Cstop offset='100%25' stop-color='%23ffc800'/%3E%3C/linearGradient%3E%3ClinearGradient id='y2' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffef6b'/%3E%3Cstop offset='100%25' stop-color='%23ffd700'/%3E%3C/linearGradient%3E%3ClinearGradient id='y3' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fcd34d'/%3E%3Cstop offset='100%25' stop-color='%23f59e0b'/%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- row 1 --%3E%3Crect x='0' y='0' width='60' height='36' rx='4' fill='url(%23y1)'/%3E%3Ccircle cx='20' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='40' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='60' y='0' width='60' height='36' rx='4' fill='url(%23b1)'/%3E%3Ccircle cx='80' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='100' cy='10' r='6' fill='rgba(255,255,255,.25)'/%3E%3C!-- row 2 --%3E%3Crect x='-30' y='36' width='60' height='36' rx='4' fill='url(%23b2)'/%3E%3Ccircle cx='-10' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='10' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='30' y='36' width='60' height='36' rx='4' fill='url(%23y2)'/%3E%3Ccircle cx='50' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='70' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Crect x='90' y='36' width='60' height='36' rx='4' fill='url(%23b3)'/%3E%3Ccircle cx='110' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='130' cy='46' r='6' fill='rgba(255,255,255,.25)'/%3E%3C!-- row 3 --%3E%3Crect x='0' y='72' width='60' height='36' rx='4' fill='url(%23y3)'/%3E%3Ccircle cx='20' cy='82' r='6' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='40' cy='82' r='6' fill='rgba(255,255,255,.25)'/%3E%3C/svg%3E");
     background-size: 120px 108px;
-    mask-image: linear-gradient(to top, rgba(0,0,0,.15) 0%, rgba(0,0,0,.08) 60%, transparent 100%);
+    mask-image: linear-gradient(to top, rgba(0,0,0,.2) 0%, rgba(0,0,0,.1) 60%, transparent 100%);
   }
-  /* 像素城市天际线 */
+  /* 像素城市天际线 — 黄蓝调 */
   body::after {
-    content: ''; position: fixed; bottom: 0; left: 0; right: 0; height: 180px; z-index: 0; pointer-events: none;
+    content: ''; position: fixed; bottom: 0; left: 0; right: 0; height: 200px; z-index: 0; pointer-events: none;
     background:
-      /* 地面 */
-      linear-gradient(to top, var(--dark) 4px, transparent 4px),
-      /* 建筑群 — 用像素矩形堆出城市 */
-      /* 最左矮楼 */
-      linear-gradient(to top, var(--dark) 24px, transparent 24px),
-      /* 高楼1 */
-      linear-gradient(to top, var(--purple) 80px, transparent 80px),
-      /* 高楼2 */
-      linear-gradient(to top, var(--pink) 120px, transparent 120px),
-      /* 中楼 */
-      linear-gradient(to top, var(--cyan) 60px, transparent 60px),
-      /* 高楼3 */
-      linear-gradient(to top, var(--yellow) 100px, transparent 100px),
-      /* 矮楼 */
-      linear-gradient(to top, var(--green) 40px, transparent 40px),
-      /* 高楼4 */
-      linear-gradient(to top, var(--orange) 90px, transparent 90px);
+      linear-gradient(to top, #1a3a5c 4px, transparent 4px),
+      linear-gradient(to top, #1a3a5c 30px, transparent 30px),
+      linear-gradient(to top, #0055aa 90px, transparent 90px),
+      linear-gradient(to top, #ffc800 120px, transparent 120px),
+      linear-gradient(to top, #0066cc 70px, transparent 70px),
+      linear-gradient(to top, #ffd740 100px, transparent 100px),
+      linear-gradient(to top, #004488 55px, transparent 55px),
+      linear-gradient(to top, #ffb300 85px, transparent 85px);
     background-size:
-      100% 180px,
-      40px 180px, 32px 180px, 28px 180px, 36px 180px, 30px 180px, 44px 180px, 34px 180px;
+      100% 200px,
+      44px 200px, 36px 200px, 32px 200px, 40px 200px, 30px 200px, 46px 200px, 34px 200px;
     background-position:
       0 100%,
-      0% 100%, 5% 100%, 12% 100%, 20% 100%, 28% 100%, 36% 100%, 44% 100%;
+      0 100%, 6% 100%, 14% 100%, 22% 100%, 30% 100%, 40% 100%, 48% 100%;
     background-repeat: repeat-x;
-    opacity: .15;
-  }
-  /* 城市窗户小灯 */
-  @media (min-width: 600px) {
-    body::after {
-      opacity: .12;
-    }
+    opacity: .22;
   }
 
   .container {
