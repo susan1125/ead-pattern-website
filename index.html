@@ -536,6 +536,14 @@
         <input type="checkbox" id="ditherToggle" checked style="width:16px;height:16px;cursor:pointer;">
         抖色优化
       </label>
+      <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:4px;">缩放：</label>
+      <select id="zoomLevel" style="padding:6px 8px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
+        <option value="0.8">80%</option>
+        <option value="1" selected>100%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+        <option value="3">300%</option>
+      </select>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:6px;">网格线：</label>
       <input type="color" id="gridLineColor" value="#d4d4d8"
         style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
@@ -1034,6 +1042,7 @@
   const majorV = document.getElementById('majorV');
   const majorGridColorBtn = document.getElementById('majorGridColorBtn');
   const borderColor = document.getElementById('borderColorCustom');
+  const zoomLevel = document.getElementById('zoomLevel');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1077,6 +1086,9 @@
   // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
     if (currentImage) generatePattern();
+  });
+  zoomLevel.addEventListener('change', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
   gridLineColor.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
@@ -1487,7 +1499,9 @@
     const isMobile = window.innerWidth < 768;
     // 高清渲染：用 devicePixelRatio 避免模糊
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const displayWidth = isMobile ? 700 : 1000;
+    const zoom = parseFloat(zoomLevel.value);
+    const baseWidth = isMobile ? 700 : 1000;
+    const displayWidth = Math.round(baseWidth * zoom);
     const displayCellSize = Math.max(14, Math.floor(displayWidth / N));
     const showLabels = N <= 80;
     const labelSize = showLabels ? 32 : 0;
