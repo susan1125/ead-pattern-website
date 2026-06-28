@@ -476,8 +476,17 @@
       </div>
       <div class="shop-panel-actions">
         <button class="btn btn-success" id="shopSaveBtn">✅ 应用</button>
+        <button class="btn btn-outline" id="shopExportBtn">📤 导出配置</button>
+        <button class="btn btn-outline" id="shopImportBtn" onclick="document.getElementById('shopImportFile').click()">📥 导入配置</button>
+        <input type="file" id="shopImportFile" accept=".json" class="hidden">
+        <button class="btn btn-outline" id="shopCopyLinkBtn">🔗 复制专属链接</button>
         <button class="btn btn-outline" id="shopResetBtn">🔄 恢复默认</button>
         <button class="btn btn-danger" id="shopCloseBtn">✕ 取消</button>
+      </div>
+      <div class="shop-field" style="margin-top:12px;background:#f0fdf4;border-radius:10px;padding:10px 14px;font-size:12px;color:#166534;display:none;" id="shopLinkCopied">
+        ✅ 专属链接已复制！发送给老板，打开即显示他们的店铺信息。
+      </div>
+      <div class="shop-field" style="margin-top:12px;background:#eff6ff;border-radius:10px;padding:10px 14px;font-size:11px;color:#1e40af;" id="shopUrlPreview">
       </div>
     </div>
   </div>
@@ -1710,6 +1719,78 @@
     applyShopSettings({ ...SHOP_DEFAULTS });
     shopOverlay.classList.add('hidden');
   });
+
+  // Export
+  document.getElementById('shopExportBtn').addEventListener('click', () => {
+    const s = loadShopSettings();
+    const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (s.name || '拼豆') + '-店铺配置.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Import
+  document.getElementById('shopImportFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const s = JSON.parse(ev.target.result);
+        saveShopSettings(s);
+        applyShopSettings(s);
+        alert('✅ 配置已导入！');
+        shopOverlay.classList.add('hidden');
+      } catch(err) { alert('❌ 文件格式错误'); }
+    };
+    reader.readAsText(file);
+  });
+
+  // Copy shareable URL
+  function buildShopUrl(s) {
+    const params = new URLSearchParams();
+    if (s.name && s.name !== SHOP_DEFAULTS.name) params.set('name', s.name);
+    if (s.slogan && s.slogan !== SHOP_DEFAULTS.slogan) params.set('slogan', s.slogan);
+    if (s.logo) params.set('logo', s.logo);
+    if (s.contact) params.set('contact', s.contact);
+    if (s.address) params.set('address', s.address);
+    if (s.theme && s.theme !== SHOP_DEFAULTS.theme) params.set('theme', s.theme);
+    const base = location.origin + location.pathname;
+    const qs = params.toString();
+    return qs ? base + '?' + qs : base;
+  }
+
+  document.getElementById('shopCopyLinkBtn').addEventListener('click', () => {
+    const s = loadShopSettings();
+    const url = buildShopUrl(s);
+    const preview = document.getElementById('shopUrlPreview');
+    preview.innerHTML = '🔗 <strong>专属链接：</strong><br><code style="word-break:break-all;font-size:11px;">' + url + '</code>';
+    preview.style.display = 'block';
+    navigator.clipboard.writeText(url).then(() => {
+      const el = document.getElementById('shopLinkCopied');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }).catch(() => {});
+  });
+
+  // Load settings from URL params on startup (overrides localStorage)
+  (function initFromUrl() {
+    const p = new URLSearchParams(location.search);
+    if ([...p.keys()].length === 0) return;
+    const urlSettings = {};
+    if (p.has('name')) urlSettings.name = p.get('name');
+    if (p.has('slogan')) urlSettings.slogan = p.get('slogan');
+    if (p.has('logo')) urlSettings.logo = p.get('logo');
+    if (p.has('contact')) urlSettings.contact = p.get('contact');
+    if (p.has('address')) urlSettings.address = p.get('address');
+    if (p.has('theme')) urlSettings.theme = p.get('theme');
+    if (Object.keys(urlSettings).length > 0) {
+      saveShopSettings(urlSettings);
+      applyShopSettings(urlSettings);
+    }
+  })();
 
   // ============ 初始化 ============
   console.log('🧩 拼豆图纸生成器已就绪');
