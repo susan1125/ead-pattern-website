@@ -6,50 +6,50 @@
 <title>拼豆图纸生成器</title>
 <style>
   :root {
-    /* ===== 设计令牌 · Apple × Patagonia ===== */
-    --bg-base: #eceff3;
-    --bg-card-solid: #fafbfc;
-    --text: #1D2A3A;
-    --text-secondary: #5a6b7a;
-    --text-muted: #8b99a6;
-    --primary: #4a6b8a;
-    --primary-hover: #3a5670;
-    --border: rgba(74,107,138,.12);
-    --border-solid: #dce3ea;
-    --highlight: #e8915a;
-    --success: #6a9b7a;
-    --glass-bg: rgba(255,255,255,.68);
-    --glass-shadow: 0 8px 32px rgba(30,40,50,.08);
-    --glass-blur: blur(20px) saturate(170%);
-    --shadow-sm: 0 1px 2px rgba(30,40,50,.04);
-    --shadow: 0 4px 16px rgba(30,40,50,.06), 0 1px 3px rgba(30,40,50,.04);
-    --shadow-lg: 0 16px 48px rgba(30,40,50,.08);
-    --radius-xs: 8px; --radius-sm: 12px; --radius: 20px; --radius-lg: 28px; --radius-xl: 40px;
+    /* ===== 多巴胺像素世界 ===== */
+    --pink: #ff5e99; --cyan: #00d4ff; --yellow: #ffe74c;
+    --green: #5eff6b; --purple: #c45eff; --orange: #ff8c42;
+    --white: #fff; --dark: #2a1a3a; --gray: #f0e8ff;
+    --primary: #ff5e99; --primary-hover: #e04480;
+    --text: #2a1a3a; --text-secondary: #6a5a7a; --text-muted: #9a8aaa;
+    --border: #e8d8f8; --border-solid: #dcc8f0;
+    --shadow: 4px 4px 0 rgba(42,26,58,.12);
+    --shadow-lg: 6px 6px 0 rgba(42,26,58,.15);
+    --radius: 0px; --radius-sm: 0px;
     --ease-out: cubic-bezier(.16,1,.3,1);
     --ease-spring: cubic-bezier(.34,1.56,.64,1);
-    --duration: .3s;
+    --duration: .2s;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background: var(--bg-base);
-    min-height: 100vh;
-    color: var(--text);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
+    background: linear-gradient(180deg, #b8e8ff 0%, #ffe4f5 30%, #fff8e4 60%, #e8ffe8 100%);
+    min-height: 100vh; color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased;
   }
-  /* 环境背景层 — Patagonia雪山 */
+  /* 像素世界背景 */
   body::before {
     content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c8d8e8'/%3E%3Cstop offset='40%25' stop-color='%23dce6f0'/%3E%3Cstop offset='70%25' stop-color='%23eef2f6'/%3E%3Cstop offset='100%25' stop-color='%23f4f6f9'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt1' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fff'/%3E%3Cstop offset='60%25' stop-color='%23dfe6ed'/%3E%3Cstop offset='100%25' stop-color='%2394a8ba'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt2' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23e8edf2'/%3E%3Cstop offset='50%25' stop-color='%23bcc8d4'/%3E%3Cstop offset='100%25' stop-color='%237d93a8'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt3' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d5dde5'/%3E%3Cstop offset='100%25' stop-color='%2390a3b5'/%3E%3C/linearGradient%3E%3ClinearGradient id='mt4' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c5d0db'/%3E%3Cstop offset='100%25' stop-color='%237d93a8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23sky)'/%3E%3C!-- far mountains --%3E%3Cpolygon points='0,600 200,380 350,450 500,300 650,420 800,350 950,400 1100,320 1250,380 1400,300 1600,420 1600,900 0,900' fill='%23d5dde5' opacity='.6'/%3E%3Cpolygon points='0,650 150,500 300,550 450,420 600,520 750,450 900,500 1050,430 1200,480 1350,410 1500,460 1600,500 1600,900 0,900' fill='url(%23mt2)' opacity='.7'/%3E%3C!-- mid mountains --%3E%3Cpolygon points='0,700 100,580 250,620 400,520 550,600 700,540 850,590 1000,510 1150,560 1300,500 1450,550 1600,580 1600,900 0,900' fill='url(%23mt3)' opacity='.85'/%3E%3C!-- front mountains --%3E%3Cpolygon points='0,750 180,640 350,700 500,590 650,670 800,620 950,660 1100,580 1250,630 1400,570 1600,650 1600,900 0,900' fill='url(%23mt4)'/%3E%3C!-- snow caps --%3E%3Cpolygon points='500,590 560,630 500,640 450,620' fill='%23fff' opacity='.8'/%3E%3Cpolygon points='1100,580 1160,615 1100,625 1050,610' fill='%23fff' opacity='.8'/%3E%3Cpolygon points='180,640 230,670 180,680 140,660' fill='%23fff' opacity='.6'/%3E%3Cpolygon points='1400,570 1450,600 1400,610 1360,595' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") center/cover no-repeat;
-    opacity: .8;
-  }
-  body::after {
-    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: radial-gradient(ellipse 50% 40% at 50% 30%, rgba(255,255,255,.3) 0%, transparent 70%);
+      /* 像素云朵 */
+      radial-gradient(circle 80px at 10% 15%, rgba(255,255,255,.7) 0%, transparent 100%),
+      radial-gradient(circle 60px at 16% 12%, rgba(255,255,255,.8) 0%, transparent 100%),
+      radial-gradient(circle 50px at 14% 18%, rgba(255,255,255,.6) 0%, transparent 100%),
+      radial-gradient(circle 90px at 75% 10%, rgba(255,255,255,.7) 0%, transparent 100%),
+      radial-gradient(circle 65px at 80% 8%, rgba(255,255,255,.8) 0%, transparent 100%),
+      radial-gradient(circle 55px at 78% 14%, rgba(255,255,255,.6) 0%, transparent 100%),
+      radial-gradient(circle 70px at 45% 20%, rgba(255,255,255,.5) 0%, transparent 100%),
+      /* 像素小点 */
+      radial-gradient(circle 6px at 20% 85%, var(--pink) 0%, transparent 100%),
+      radial-gradient(circle 6px at 35% 90%, var(--cyan) 0%, transparent 100%),
+      radial-gradient(circle 6px at 55% 88%, var(--yellow) 0%, transparent 100%),
+      radial-gradient(circle 6px at 70% 92%, var(--green) 0%, transparent 100%),
+      radial-gradient(circle 6px at 85% 86%, var(--purple) 0%, transparent 100%),
+      radial-gradient(circle 6px at 15% 95%, var(--orange) 0%, transparent 100%),
+      radial-gradient(circle 8px at 50% 82%, var(--pink) 0%, transparent 100%),
+      radial-gradient(circle 8px at 40% 94%, var(--cyan) 0%, transparent 100%),
+      radial-gradient(circle 8px at 65% 84%, var(--yellow) 0%, transparent 100%);
   }
 
   .container {
@@ -59,52 +59,39 @@
     position: relative; z-index: 1;
   }
 
-  /* Header — 意境命名，细体高级感 */
-  .header {
-    text-align: center;
-    padding: 48px 0 32px;
-  }
-  .header .icon { font-size: 36px; margin-bottom: 12px; display: block; opacity: .7; }
+  /* Header — 多巴胺大标题 */
+  .header { text-align: center; padding: 40px 0 24px; }
+  .header .icon { font-size: 64px; margin-bottom: 8px; display: block; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
   .header h1 {
-    font-size: 32px; font-weight: 300; letter-spacing: .04em;
-    color: var(--text);
+    font-size: 36px; font-weight: 900; letter-spacing: .02em;
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--green));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  .header p {
-    color: var(--text-muted); font-size: 15px; margin-top: 8px; font-weight: 400;
-    letter-spacing: .02em;
-  }
+  .header p { color: var(--text-secondary); font-size: 16px; margin-top: 8px; font-weight: 600; }
 
-  /* Cards — 毛玻璃 */
+  /* Cards — 实色白底+粗像素阴影 */
   .card {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border-radius: var(--radius);
-    padding: 28px;
-    margin-bottom: 24px;
-    box-shadow: var(--glass-shadow);
-    border: 1px solid var(--border);
-    transition: box-shadow var(--duration) var(--ease-out);
+    background: #fff;
+    border: 3px solid var(--dark);
+    padding: 24px; margin-bottom: 20px;
+    box-shadow: 6px 6px 0 rgba(42,26,58,.15);
+    transition: transform var(--duration) var(--ease-out);
   }
-  .card:hover { box-shadow: var(--shadow-lg); }
+  .card:hover { transform: translate(-2px,-2px); box-shadow: 8px 8px 0 rgba(42,26,58,.18); }
 
-  /* Upload Area — 虚线+毛玻璃，hover下沉反馈 */
+  /* Upload Area */
   .upload-area {
-    border: 2px dashed var(--border-solid);
-    border-radius: var(--radius-sm);
-    padding: 48px 24px;
-    text-align: center;
-    cursor: pointer;
+    border: 4px dashed var(--pink);
+    padding: 48px 24px; text-align: center; cursor: pointer;
     transition: all var(--duration) var(--ease-out);
-    background: rgba(255,255,255,.4);
+    background: repeating-linear-gradient(45deg, rgba(255,94,153,.03) 0px, rgba(255,94,153,.03) 8px, rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 16px);
     position: relative;
   }
   .upload-area:hover, .upload-area.drag-over {
-    border-color: var(--primary);
-    border-style: solid;
-    background: rgba(255,255,255,.6);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(74,107,138,.12);
+    border-color: var(--cyan); border-style: solid;
+    background: rgba(0,212,255,.08); transform: scale(1.01);
   }
   .upload-area.has-image { padding: 16px; }
   .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -154,45 +141,36 @@
     flex-wrap: wrap;
   }
   .size-btn {
-    padding: 8px 18px; border: 1.5px solid var(--border-solid); border-radius: 20px;
-    background: var(--glass-bg); backdrop-filter: blur(8px); cursor: pointer;
-    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    padding: 8px 18px; border: 3px solid var(--dark); background: #fff; cursor: pointer;
+    font-size: 13px; font-weight: 700; color: var(--dark);
     transition: all var(--duration) var(--ease-out); white-space: nowrap;
+    box-shadow: 3px 3px 0 rgba(42,26,58,.12);
   }
-  .size-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(74,107,138,.06); }
-  .size-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 8px rgba(74,107,138,.25); }
+  .size-btn:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 rgba(42,26,58,.18); }
+  .size-btn.active { background: var(--cyan); color: var(--dark); border-color: var(--dark); box-shadow: 3px 3px 0 rgba(42,26,58,.2); }
 
-  /* Buttons — 微渐变+投影，点击下沉 */
+  /* Buttons — 粗边框像素风 */
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 22px; border: none; border-radius: 24px; cursor: pointer;
-    font-size: 14px; font-weight: 500; transition: all var(--duration) var(--ease-out);
-    white-space: nowrap; letter-spacing: .01em;
+    padding: 12px 24px; border: 3px solid var(--dark); cursor: pointer;
+    font-size: 14px; font-weight: 700; transition: all var(--duration) var(--ease-out);
+    white-space: nowrap; box-shadow: 4px 4px 0 rgba(42,26,58,.15);
   }
-  .btn-primary {
-    background: linear-gradient(165deg, #4a6b8a, #3a5670);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(74,107,138,.25);
-  }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,107,138,.35); }
-  .btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(74,107,138,.2); }
-  .btn-outline {
-    background: rgba(255,255,255,.6); backdrop-filter: blur(8px);
-    color: var(--primary); border: 1.5px solid var(--border-solid);
-  }
-  .btn-outline:hover { background: rgba(74,107,138,.08); border-color: var(--primary); }
+  .btn-primary { background: var(--pink); color: #fff; }
+  .btn-primary:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(42,26,58,.2); }
+  .btn-primary:active { transform: translate(2px,2px); box-shadow: 0 0 0; }
+  .btn-outline { background: #fff; color: var(--dark); }
+  .btn-outline:hover { background: var(--yellow); transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(42,26,58,.2); }
+  .btn-outline:active { transform: translate(2px,2px); box-shadow: 0 0 0; }
   .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
 
   /* Result Sections */
   .section-title {
-    font-size: 14px; font-weight: 600; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 10px; color: var(--text-secondary);
-    letter-spacing: .04em; text-transform: uppercase;
+    font-size: 15px; font-weight: 800; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; color: var(--dark);
+    letter-spacing: .02em;
   }
-  .section-title::before {
-    content: ''; width: 3px; height: 16px;
-    background: var(--primary); border-radius: 2px;
-  }
+  .section-title::before { content: '▸'; color: var(--pink); font-size: 14px; }
 
   .image-preview-wrap {
     text-align: center;
@@ -2170,8 +2148,8 @@
 
   // ============ 店铺定制 ============
   const SHOP_DEFAULTS = {
-    logo: '', name: '像素化你的世界', slogan: '将灵感凝结为每一颗豆子',
-    contact: '', address: '', theme: '4a6b8a'
+    logo: '', name: '像素化你的世界', slogan: '把快乐一颗一颗拼出来',
+    contact: '', address: '', theme: 'ff5e99'
   };
 
   // DOM refs for shop
