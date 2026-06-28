@@ -536,9 +536,10 @@
       <input type="number" id="majorGridCustom" value="8" min="2" max="100"
         style="width:52px;padding:5px 4px;border:2px solid #e2e8f0;border-radius:16px;font-size:12px;text-align:center;display:none;">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格色：</label>
+      <span id="majorGridColorPalette" style="display:inline-flex;gap:4px;align-items:center;"></span>
       <input type="color" id="majorGridColorCustom" value="#6366f1"
         style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
-        title="大格线颜色">
+        title="自定义大格线颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">边框色：</label>
       <input type="color" id="borderColorCustom" value="#f1f5f9"
         style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
@@ -1004,6 +1005,7 @@
   const gridLineColor = document.getElementById('gridLineColor');
   const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
+  const majorGridColorPalette = document.getElementById('majorGridColorPalette');
   const majorGridColor = document.getElementById('majorGridColorCustom');
   const borderColor = document.getElementById('borderColorCustom');
   const paletteSelect = document.getElementById('paletteSelect');
@@ -1101,7 +1103,32 @@
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
-  // 大格线颜色 + 边框色：直接取色轮值，无需额外逻辑
+  // 大格线颜色预设 + 色轮
+  const MAJOR_COLORS = ['#6366f1','#000000','#ef4444','#f97316','#22c55e','#3b82f6','#94a3b8'];
+  let activeMajorColor = '#6366f1';
+  MAJOR_COLORS.forEach(c => {
+    const dot = document.createElement('span');
+    Object.assign(dot.style, {
+      display:'inline-block',width:'24px',height:'24px',borderRadius:'50%',
+      cursor:'pointer',background:c,border:'2px solid '+c,
+      boxShadow: c===activeMajorColor ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
+      transition:'all .15s',
+    });
+    dot.addEventListener('click',()=>{
+      activeMajorColor = c;
+      activeMajorColor = c;
+      majorGridColorPalette.querySelectorAll('span').forEach((d,j)=>{
+        d.style.boxShadow = MAJOR_COLORS[j]===c ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
+      });
+      if(currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    });
+    majorGridColorPalette.appendChild(dot);
+  });
+  majorGridColor.addEventListener('input',()=>{
+    activeMajorColor = majorGridColor.value;
+    majorGridColorPalette.querySelectorAll('span').forEach(d=>d.style.boxShadow='none');
+    if(currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
 
   // 色板切换
   const customPaletteEditor = document.getElementById('customPaletteEditor');
@@ -1366,7 +1393,7 @@
     // 大格粗线
     const majorN = getMajorGridN();
     if (majorN > 0 && N >= majorN) {
-      ctx.strokeStyle = majorGridColor.value;
+      ctx.strokeStyle = activeMajorColor;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
       ctx.beginPath();
       for (let i = 0; i <= N; i += majorN) {
