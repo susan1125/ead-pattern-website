@@ -527,28 +527,22 @@
         抖色优化
       </label>
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:6px;">网格线：</label>
-      <span id="gridLinePalette" style="display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;">
-      </span>
-      <input type="color" id="gridLineCustomColor" value="#d4d4d8"
-        style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
-        title="自定义颜色">
+      <input type="color" id="gridLineColor" value="#d4d4d8"
+        style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
+        title="网格线颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格线：</label>
       <span id="majorGridPalette" style="display:inline-flex;gap:4px;align-items:center;">
       </span>
       <input type="number" id="majorGridCustom" value="8" min="2" max="100"
         style="width:52px;padding:5px 4px;border:2px solid #e2e8f0;border-radius:16px;font-size:12px;text-align:center;display:none;">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格色：</label>
-      <span id="majorGridColorPalette" style="display:inline-flex;gap:4px;align-items:center;">
-      </span>
       <input type="color" id="majorGridColorCustom" value="#6366f1"
-        style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
-        title="自定义大格线颜色">
+        style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
+        title="大格线颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">边框色：</label>
-      <span id="borderColorPalette" style="display:inline-flex;gap:4px;align-items:center;">
-      </span>
       <input type="color" id="borderColorCustom" value="#f1f5f9"
-        style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
-        title="自定义边框背景色">
+        style="width:30px;height:30px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;padding:0;"
+        title="边框背景色">
     </div>
 
     <!-- 色板选择 -->
@@ -1007,14 +1001,11 @@
   const copyBorderBtn = document.getElementById('copyBorderBtn');
   const saveToPhoneBtn = document.getElementById('saveToPhoneBtn');
   const ditherToggle = document.getElementById('ditherToggle');
-  const gridLinePalette = document.getElementById('gridLinePalette');
-  const gridLineCustom = document.getElementById('gridLineCustomColor');
+  const gridLineColor = document.getElementById('gridLineColor');
   const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
-  const majorGridColorPalette = document.getElementById('majorGridColorPalette');
-  const majorGridColorCustom = document.getElementById('majorGridColorCustom');
-  const borderColorPalette = document.getElementById('borderColorPalette');
-  const borderColorCustom = document.getElementById('borderColorCustom');
+  const majorGridColor = document.getElementById('majorGridColorCustom');
+  const borderColor = document.getElementById('borderColorCustom');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
   const statColors = document.getElementById('statColors');
@@ -1050,72 +1041,22 @@
     if (currentImage) generatePattern();
   });
 
-  // 调色盘预设色（常见网格线颜色）
-  const GRID_LINE_PRESETS = [
-    { color: '#d4d4d8', label: '浅灰' },
-    { color: '#94a3b8', label: '深灰' },
-    { color: '#64748b', label: '石板' },
-    { color: '#000000', label: '纯黑' },
-    { color: '#ffffff', label: '白色' },
-    { color: '#6366f1', label: '主题' },
-    { color: 'none', label: '关' },
-  ];
-  let selectedGridColor = '#d4d4d8';
-
-  // 构建调色盘
-  GRID_LINE_PRESETS.forEach((p, i) => {
-    const btn = document.createElement('span');
-    if (p.color === 'none') {
-      btn.innerHTML = '✕';
-      btn.title = '无网格线';
-      Object.assign(btn.style, {
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer',
-        border: '2px solid #e2e8f0', background: '#fff', fontSize: '14px',
-        color: '#94a3b8', transition: 'all .15s',
-      });
-    } else {
-      btn.title = p.label;
-      Object.assign(btn.style, {
-        display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%',
-        cursor: 'pointer', background: p.color, border: '2px solid ' + (p.color === '#ffffff' ? '#e2e8f0' : p.color),
-        transition: 'all .15s', boxShadow: p.color === selectedGridColor ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
-      });
-      if (p.color === '#ffffff') btn.style.boxShadow = 'inset 0 0 0 1px #e2e8f0';
-    }
-    btn.addEventListener('click', () => {
-      selectedGridColor = p.color;
-      // 更新选中态
-      gridLinePalette.querySelectorAll('span').forEach((b, j) => {
-        const c = GRID_LINE_PRESETS[j].color;
-        if (c === 'none') {
-          b.style.boxShadow = p.color === 'none' ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
-        } else {
-          b.style.boxShadow = c === p.color ? '0 0 0 3px rgba(99,102,241,.4)' : (c === '#ffffff' ? 'inset 0 0 0 1px #e2e8f0' : 'none');
-        }
-      });
-      gridLineCustom.value = p.color === 'none' ? '#d4d4d8' : p.color;
-      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-    });
-    // 初始选中态
-    if (p.color === selectedGridColor) {
-      btn.style.boxShadow = p.color === 'none' ? '0 0 0 3px rgba(99,102,241,.4)' : '0 0 0 3px rgba(99,102,241,.4)';
-    }
-    gridLinePalette.appendChild(btn);
-  });
-
+  // 网格线颜色（直接取色轮）
   function getGridLineColor() {
-    return selectedGridColor === 'none' ? null : selectedGridColor;
+    return gridLineColor.value;
   }
 
   // 抖动/网格线开关
   ditherToggle.addEventListener('change', () => {
     if (currentImage) generatePattern();
   });
-  gridLineCustom.addEventListener('input', () => {
-    selectedGridColor = gridLineCustom.value;
-    // 取消预设选中态
-    gridLinePalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
+  gridLineColor.addEventListener('input', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+  majorGridColor.addEventListener('input', () => {
+    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  });
+  borderColor.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
   // 大格线调色盘
@@ -1160,101 +1101,7 @@
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
 
-  // 大格线颜色盘
-  const MAJOR_GRID_COLOR_PRESETS = [
-    { color: '#6366f1', label: '紫蓝' },
-    { color: '#000000', label: '纯黑' },
-    { color: '#ef4444', label: '红色' },
-    { color: '#f97316', label: '橙色' },
-    { color: '#22c55e', label: '绿色' },
-    { color: '#3b82f6', label: '蓝色' },
-    { color: '#94a3b8', label: '灰色' },
-  ];
-  let selectedMajorGridColor = '#6366f1';
-
-  MAJOR_GRID_COLOR_PRESETS.forEach((p, i) => {
-    const btn = document.createElement('span');
-    btn.title = p.label;
-    const isActive = p.color === selectedMajorGridColor;
-    Object.assign(btn.style, {
-      display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%',
-      cursor: 'pointer', background: p.color, border: '2px solid ' + p.color,
-      transition: 'all .15s',
-      boxShadow: isActive ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
-    });
-    btn.addEventListener('click', () => {
-      selectedMajorGridColor = p.color;
-      majorGridColorPalette.querySelectorAll('span').forEach((b, j) => {
-        const c = MAJOR_GRID_COLOR_PRESETS[j].color;
-        b.style.boxShadow = c === p.color ? '0 0 0 3px rgba(99,102,241,.4)' : 'none';
-      });
-      majorGridColorCustom.value = p.color;
-      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-    });
-    majorGridColorPalette.appendChild(btn);
-  });
-
-  majorGridColorCustom.addEventListener('input', () => {
-    selectedMajorGridColor = majorGridColorCustom.value;
-    majorGridColorPalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-  });
-
-  // 边框色调色盘
-  const BORDER_COLOR_PRESETS = [
-    { color: '#f1f5f9', label: '浅灰' },
-    { color: '#e2e8f0', label: '中灰' },
-    { color: '#cbd5e1', label: '深灰' },
-    { color: '#fef3c7', label: '暖黄' },
-    { color: '#dbeafe', label: '淡蓝' },
-    { color: '#fce7f3', label: '淡粉' },
-    { color: '#ffffff', label: '白' },
-    { color: 'transparent', label: '无' },
-  ];
-  let selectedBorderColor = '#f1f5f9';
-
-  BORDER_COLOR_PRESETS.forEach((p, i) => {
-    const btn = document.createElement('span');
-    btn.title = p.label;
-    const isActive = p.color === selectedBorderColor;
-    if (p.color === 'transparent') {
-      btn.innerHTML = '✕';
-      Object.assign(btn.style, {
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer',
-        border: '2px solid ' + (isActive ? '#6366f1' : '#e2e8f0'),
-        background: '#fff', fontSize: '12px', color: '#94a3b8', transition: 'all .15s',
-        boxShadow: isActive ? '0 0 0 3px rgba(99,102,241,.4)' : 'none',
-      });
-    } else {
-      const isWhite = p.color === '#ffffff';
-      Object.assign(btn.style, {
-        display: 'inline-block', width: '28px', height: '28px', borderRadius: '50%',
-        cursor: 'pointer', background: p.color,
-        border: '2px solid ' + (isWhite ? '#e2e8f0' : p.color),
-        transition: 'all .15s',
-        boxShadow: isActive ? '0 0 0 3px rgba(99,102,241,.4)' : (isWhite ? 'inset 0 0 0 1px #e2e8f0' : 'none'),
-      });
-    }
-    btn.addEventListener('click', () => {
-      selectedBorderColor = p.color;
-      borderColorPalette.querySelectorAll('span').forEach((b, j) => {
-        const c = BORDER_COLOR_PRESETS[j].color;
-        const isWhite = c === '#ffffff';
-        b.style.border = '2px solid ' + (c === p.color ? '#6366f1' : '#e2e8f0');
-        b.style.boxShadow = c === p.color ? '0 0 0 3px rgba(99,102,241,.4)' : (isWhite && c !== p.color ? 'inset 0 0 0 1px #e2e8f0' : 'none');
-      });
-      borderColorCustom.value = p.color === 'transparent' ? '#f1f5f9' : p.color;
-      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-    });
-    borderColorPalette.appendChild(btn);
-  });
-
-  borderColorCustom.addEventListener('input', () => {
-    selectedBorderColor = borderColorCustom.value;
-    borderColorPalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
-  });
+  // 大格线颜色 + 边框色：直接取色轮值，无需额外逻辑
 
   // 色板切换
   const customPaletteEditor = document.getElementById('customPaletteEditor');
@@ -1519,7 +1366,7 @@
     // 大格粗线
     const majorN = getMajorGridN();
     if (majorN > 0 && N >= majorN) {
-      ctx.strokeStyle = selectedMajorGridColor;
+      ctx.strokeStyle = majorGridColor.value;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
       ctx.beginPath();
       for (let i = 0; i <= N; i += majorN) {
@@ -1574,8 +1421,8 @@
     // 行列标号
     if (showLabels) {
       // 标签区域背景色
-      if (selectedBorderColor !== 'transparent') {
-        ctx.fillStyle = selectedBorderColor;
+      if (borderColor.value !== 'transparent') {
+        ctx.fillStyle = borderColor.value;
         ctx.fillRect(0, 0, canvasW, oy);       // 顶部列号区
         ctx.fillRect(0, 0, ox, canvasH);        // 左侧行号区
       }
@@ -1717,8 +1564,8 @@
     // 行列坐标标签
     if (showExportLabels) {
       // 标签区背景
-      if (selectedBorderColor !== 'transparent') {
-        ctx.fillStyle = selectedBorderColor;
+      if (borderColor.value !== 'transparent') {
+        ctx.fillStyle = borderColor.value;
         ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, gridPx + exportLabelSize, exportLabelSize);
         ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, exportLabelSize, gridPx + exportLabelSize);
       }
@@ -1836,8 +1683,8 @@
     drawAllGridLines(ctx, ox, oy, gridPx, N, cellSize);
 
     // 坐标
-    if (selectedBorderColor !== 'transparent') {
-      ctx.fillStyle = selectedBorderColor;
+    if (borderColor.value !== 'transparent') {
+      ctx.fillStyle = borderColor.value;
       ctx.fillRect(0, 0, ox + gridPx, oy);
       ctx.fillRect(0, 0, ox, oy + gridPx);
     }
