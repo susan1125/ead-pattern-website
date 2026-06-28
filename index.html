@@ -6,95 +6,110 @@
 <title>拼豆图纸生成器</title>
 <style>
   :root {
-    --bg: #f0f2f5;
-    --card: #ffffff;
-    --text: #2c3e50;
-    --text-secondary: #64748b;
-    --border: #e2e8f0;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-    --shadow-lg: 0 10px 40px rgba(0,0,0,.08);
-    --radius: 16px;
-    --radius-sm: 10px;
+    /* ===== 设计令牌 · Apple × Patagonia ===== */
+    --bg-base: #eceff3;
+    --bg-card-solid: #fafbfc;
+    --text: #1D2A3A;
+    --text-secondary: #5a6b7a;
+    --text-muted: #8b99a6;
+    --primary: #4a6b8a;
+    --primary-hover: #3a5670;
+    --border: rgba(74,107,138,.12);
+    --border-solid: #dce3ea;
+    --highlight: #e8915a;
+    --success: #6a9b7a;
+    --glass-bg: rgba(255,255,255,.68);
+    --glass-shadow: 0 8px 32px rgba(30,40,50,.08);
+    --glass-blur: blur(20px) saturate(170%);
+    --shadow-sm: 0 1px 2px rgba(30,40,50,.04);
+    --shadow: 0 4px 16px rgba(30,40,50,.06), 0 1px 3px rgba(30,40,50,.04);
+    --shadow-lg: 0 16px 48px rgba(30,40,50,.08);
+    --radius-xs: 8px; --radius-sm: 12px; --radius: 20px; --radius-lg: 28px; --radius-xl: 40px;
+    --ease-out: cubic-bezier(.16,1,.3,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
+    --duration: .3s;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f0f2f5 100%);
+    background: var(--bg-base);
     min-height: 100vh;
     color: var(--text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
+  /* 环境背景层 */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(74,107,138,.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107,143,163,.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 50% 50%, rgba(200,210,220,.04) 0%, transparent 80%);
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+    opacity: .5;
+  }
 
   .container {
-    max-width: 800px;
+    max-width: 820px;
     margin: 0 auto;
-    padding: 24px 20px 60px;
+    padding: 32px 24px 80px;
+    position: relative; z-index: 1;
   }
 
-  /* Header */
+  /* Header — 意境命名，细体高级感 */
   .header {
     text-align: center;
-    padding: 32px 0 20px;
+    padding: 48px 0 32px;
   }
-  .header .icon {
-    font-size: 48px;
-    margin-bottom: 8px;
-    display: block;
-  }
+  .header .icon { font-size: 36px; margin-bottom: 12px; display: block; opacity: .7; }
   .header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -.02em;
+    font-size: 32px; font-weight: 300; letter-spacing: .04em;
+    color: var(--text);
   }
   .header p {
-    color: var(--text-secondary);
-    font-size: 15px;
-    margin-top: 4px;
+    color: var(--text-muted); font-size: 15px; margin-top: 8px; font-weight: 400;
+    letter-spacing: .02em;
   }
 
-  /* Cards */
+  /* Cards — 毛玻璃 */
   .card {
-    background: var(--card);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--glass-shadow);
     border: 1px solid var(--border);
+    transition: box-shadow var(--duration) var(--ease-out);
   }
+  .card:hover { box-shadow: var(--shadow-lg); }
 
-  /* Upload Area */
+  /* Upload Area — 虚线+毛玻璃，hover下沉反馈 */
   .upload-area {
-    border: 2px dashed #cbd5e1;
+    border: 2px dashed var(--border-solid);
     border-radius: var(--radius-sm);
-    padding: 40px 24px;
+    padding: 48px 24px;
     text-align: center;
     cursor: pointer;
-    transition: all .25s;
-    background: #fafbfc;
+    transition: all var(--duration) var(--ease-out);
+    background: rgba(255,255,255,.4);
     position: relative;
   }
   .upload-area:hover, .upload-area.drag-over {
     border-color: var(--primary);
-    background: #eef2ff;
+    border-style: solid;
+    background: rgba(255,255,255,.6);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(74,107,138,.12);
   }
-  .upload-area.has-image {
-    padding: 16px;
-  }
-  .upload-area input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
+  .upload-area.has-image { padding: 16px; }
+  .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .upload-icon {
     font-size: 40px;
     display: block;
@@ -141,79 +156,44 @@
     flex-wrap: wrap;
   }
   .size-btn {
-    padding: 8px 16px;
-    border: 2px solid var(--border);
-    border-radius: 20px;
-    background: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    transition: all .2s;
-    white-space: nowrap;
+    padding: 8px 18px; border: 1.5px solid var(--border-solid); border-radius: 20px;
+    background: var(--glass-bg); backdrop-filter: blur(8px); cursor: pointer;
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    transition: all var(--duration) var(--ease-out); white-space: nowrap;
   }
-  .size-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-  .size-btn.active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
+  .size-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(74,107,138,.06); }
+  .size-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 8px rgba(74,107,138,.25); }
 
-  /* Buttons */
+  /* Buttons — 微渐变+投影，点击下沉 */
   .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 22px;
-    border: none;
-    border-radius: 24px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all .2s;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 22px; border: none; border-radius: 24px; cursor: pointer;
+    font-size: 14px; font-weight: 500; transition: all var(--duration) var(--ease-out);
+    white-space: nowrap; letter-spacing: .01em;
   }
   .btn-primary {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(165deg, #4a6b8a, #3a5670);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(99,102,241,.35);
+    box-shadow: 0 2px 8px rgba(74,107,138,.25);
   }
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(99,102,241,.45);
-  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,107,138,.35); }
+  .btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(74,107,138,.2); }
   .btn-outline {
-    background: #fff;
-    color: var(--primary);
-    border: 2px solid var(--primary);
+    background: rgba(255,255,255,.6); backdrop-filter: blur(8px);
+    color: var(--primary); border: 1.5px solid var(--border-solid);
   }
-  .btn-outline:hover {
-    background: #eef2ff;
-  }
-  .btn:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-    transform: none !important;
-  }
+  .btn-outline:hover { background: rgba(74,107,138,.08); border-color: var(--primary); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
 
   /* Result Sections */
   .section-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 14px; font-weight: 600; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; color: var(--text-secondary);
+    letter-spacing: .04em; text-transform: uppercase;
   }
   .section-title::before {
-    content: '';
-    width: 4px;
-    height: 20px;
-    background: linear-gradient(180deg, #6366f1, #a855f7);
-    border-radius: 2px;
+    content: ''; width: 3px; height: 16px;
+    background: var(--primary); border-radius: 2px;
   }
 
   .image-preview-wrap {
@@ -343,40 +323,23 @@
 
   /* Stats bar */
   .stats-bar {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
+    display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px;
+    color: var(--text-muted); margin-bottom: 20px;
   }
   .stats-bar span {
-    background: #f1f5f9;
-    padding: 4px 12px;
-    border-radius: 12px;
+    background: rgba(74,107,138,.06); padding: 4px 14px; border-radius: 12px;
+    font-weight: 500;
   }
-  .stats-bar strong {
-    color: var(--primary);
-  }
+  .stats-bar strong { color: var(--primary); font-weight: 600; }
 
   /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 48px 20px;
-    color: #94a3b8;
-  }
-  .empty-state .big-icon {
-    font-size: 56px;
-    display: block;
-    margin-bottom: 12px;
-  }
+  .empty-state { text-align: center; padding: 64px 20px; color: var(--text-muted); }
+  .empty-state .big-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: .5; }
 
   /* Footer */
   .footer {
-    text-align: center;
-    font-size: 12px;
-    color: #94a3b8;
-    padding: 20px 0 0;
+    text-align: center; font-size: 12px; color: var(--text-muted);
+    padding: 32px 0 0; letter-spacing: .03em;
   }
 
   /* Responsive */
@@ -405,10 +368,12 @@
   .shop-header-slogan { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
   .shop-logo-img { max-width: 80px; max-height: 80px; border-radius: 12px; margin-bottom: 4px; }
 
-  .shop-settings-toggle { position: fixed; top: 16px; right: 16px; z-index: 999;
-    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
-    font-size: 22px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; transition: all .2s; }
-  .shop-settings-toggle:hover { transform: scale(1.1); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+  .shop-settings-toggle { position: fixed; top: 20px; right: 20px; z-index: 999;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-solid); cursor: pointer;
+    font-size: 18px; background: var(--glass-bg); backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center;
+    transition: all var(--duration) var(--ease-out); color: var(--text-muted); }
+  .shop-settings-toggle:hover { transform: scale(1.08); box-shadow: var(--shadow); color: var(--primary); }
 
   .shop-panel-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.4);
     display: flex; align-items: center; justify-content: center; }
@@ -505,16 +470,16 @@
   <div class="header" id="shopHeader">
     <img class="shop-logo-img hidden" id="shopLogoImg" alt="logo">
     <span class="icon" id="shopIcon">🧩</span>
-    <h1 class="shop-header-name" id="shopHeaderName">拼豆图纸生成器</h1>
-    <p class="shop-header-slogan" id="shopHeaderSlogan">上传图片，自动生成像素化拼豆图纸</p>
+    <h1 class="shop-header-name" id="shopHeaderName">像素化你的世界</h1>
+    <p class="shop-header-slogan" id="shopHeaderSlogan">将灵感凝结为每一颗豆子</p>
   </div>
 
   <!-- Upload & Settings Card -->
   <div class="card">
     <div class="upload-area" id="uploadArea">
       <span class="upload-icon" id="uploadIcon">📷</span>
-      <span class="upload-text" id="uploadText"><strong>点击上传</strong> 或拖拽图片到这里</span>
-      <span class="upload-hint">支持 JPG / PNG / WebP / GIF</span>
+      <span class="upload-text" id="uploadText"><strong>注入灵感</strong> · 点击或拖拽图片</span>
+      <span class="upload-hint">JPG / PNG / WebP / GIF</span>
       <img class="preview-thumb hidden" id="uploadPreview" alt="预览">
       <input type="file" id="fileInput" accept="image/*">
     </div>
@@ -673,11 +638,11 @@
   <!-- Empty State (when no image) -->
   <div class="card empty-state" id="emptyState">
     <span class="big-icon">🎨</span>
-    <p>上传一张图片来开始制作拼豆图纸吧！</p>
+    <p>将一张照片凝结为像素蓝图</p>
   </div>
 
   <div class="footer shop-footer" id="shopFooter">
-    <div>拼豆图纸生成器 · 纯前端实现 · 无需网络</div>
+    <div>像素化你的世界 · 完全离线 · 隐私无忧</div>
     <div class="shop-footer-contact hidden" id="shopFooterContact"></div>
   </div>
 
@@ -1408,7 +1373,7 @@
         uploadPreview.src = ev.target.result;
         uploadPreview.classList.remove('hidden');
         uploadIcon.classList.add('hidden');
-        uploadText.innerHTML = '<strong>点击更换图片</strong>';
+        uploadText.innerHTML = '<strong>更换图片</strong>';
         uploadArea.classList.add('has-image');
         // 生成图纸
         generatePattern();
@@ -2207,8 +2172,8 @@
 
   // ============ 店铺定制 ============
   const SHOP_DEFAULTS = {
-    logo: '', name: '拼豆图纸生成器', slogan: '上传图片，自动生成像素化拼豆图纸',
-    contact: '', address: '', theme: '6366f1'
+    logo: '', name: '像素化你的世界', slogan: '将灵感凝结为每一颗豆子',
+    contact: '', address: '', theme: '4a6b8a'
   };
 
   // DOM refs for shop
@@ -2273,7 +2238,7 @@
       shopFooterContact.classList.add('hidden');
     }
     // Page title
-    document.title = (s.name || SHOP_DEFAULTS.name) + ' - 拼豆图纸生成器';
+    document.title = (s.name || SHOP_DEFAULTS.name) + ' · 像素拼豆';
   }
 
   // init
