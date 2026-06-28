@@ -1618,8 +1618,8 @@
     const showLabels = Math.max(cols, rows) <= 80;
     const labelSize = showLabels ? 32 : 0;
     const gridPxX = cols * displayCellSize;
-    const logicalW = labelSize + gridPx;
-    const logicalH = labelSize + gridPx;
+    const logicalW = labelSize + gridPxX;
+    const logicalH = labelSize + gridPxY;
 
     const canvas = gridCanvas;
     canvas.width = logicalW * dpr;
@@ -1811,8 +1811,8 @@
       // 标签区背景
       if (borderColor.value !== 'transparent') {
         ctx.fillStyle = borderColor.value;
-        ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, gridPx + exportLabelSize, exportLabelSize);
-        ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, exportLabelSize, gridPx + exportLabelSize);
+        ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, gridPxX + exportLabelSize, exportLabelSize);
+        ctx.fillRect(offsetX - exportLabelSize, gridY - exportLabelSize, exportLabelSize, gridPxY + exportLabelSize);
       }
       // 标签区分隔线
       ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5; ctx.beginPath();
@@ -1902,8 +1902,8 @@
     const labelSize = 34;
     const gridPxX = cols * cellSize;
     const gridPxY = rows * cellSize;
-    const canvasW = labelSize + gridPx;
-    const canvasH = labelSize + gridPx;
+    const canvasW = labelSize + gridPxX;
+    const canvasH = labelSize + gridPxY;
 
     const canvas = document.createElement('canvas');
     canvas.width = canvasW;
