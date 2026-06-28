@@ -533,16 +533,10 @@
         style="width:28px;height:28px;border:2px solid #e2e8f0;border-radius:6px;cursor:pointer;padding:0;margin-left:4px;"
         title="自定义颜色">
       <label style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;margin-left:8px;">大格线：</label>
-      <select id="majorGridSpacing" style="padding:6px 10px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;">
-        <option value="0" selected>无</option>
-        <option value="5">每5格</option>
-        <option value="10">每10格</option>
-        <option value="20">每20格</option>
-        <option value="25">每25格</option>
-        <option value="custom">自定义</option>
-      </select>
+      <span id="majorGridPalette" style="display:inline-flex;gap:4px;align-items:center;">
+      </span>
       <input type="number" id="majorGridCustom" value="8" min="2" max="100"
-        style="width:56px;padding:6px 6px;border:2px solid #e2e8f0;border-radius:20px;font-size:12px;text-align:center;display:none;">
+        style="width:52px;padding:5px 4px;border:2px solid #e2e8f0;border-radius:16px;font-size:12px;text-align:center;display:none;">
     </div>
 
     <!-- 色板选择 -->
@@ -1003,7 +997,7 @@
   const ditherToggle = document.getElementById('ditherToggle');
   const gridLinePalette = document.getElementById('gridLinePalette');
   const gridLineCustom = document.getElementById('gridLineCustomColor');
-  const majorGridSpacing = document.getElementById('majorGridSpacing');
+  const majorGridPalette = document.getElementById('majorGridPalette');
   const majorGridCustom = document.getElementById('majorGridCustom');
   const paletteSelect = document.getElementById('paletteSelect');
   const statGrid = document.getElementById('statGrid');
@@ -1108,10 +1102,44 @@
     gridLinePalette.querySelectorAll('span').forEach(b => b.style.boxShadow = 'none');
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
-  majorGridSpacing.addEventListener('change', () => {
-    majorGridCustom.style.display = majorGridSpacing.value === 'custom' ? 'inline' : 'none';
-    if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+  // 大格线调色盘
+  const MAJOR_GRID_PRESETS = [0, 5, 10, 15, 20, 25, 'custom'];
+  let selectedMajorGrid = 0;
+
+  MAJOR_GRID_PRESETS.forEach((v, i) => {
+    const btn = document.createElement('span');
+    btn.textContent = v === 0 ? '关' : (v === 'custom' ? '+' : '每' + v);
+    btn.title = v === 0 ? '无大格线' : (v === 'custom' ? '自定义间距' : '每' + v + '格一条粗线');
+    const isActive = v === selectedMajorGrid;
+    Object.assign(btn.style, {
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      minWidth: v === 'custom' ? '28px' : (v === 0 ? '28px' : '36px'),
+      height: '28px', padding: '0 8px', borderRadius: '14px', cursor: 'pointer',
+      border: '2px solid ' + (isActive ? '#6366f1' : '#e2e8f0'),
+      background: isActive ? '#eef2ff' : '#fff', fontSize: '11px', fontWeight: '600',
+      color: isActive ? '#6366f1' : '#64748b', transition: 'all .15s', whiteSpace: 'nowrap',
+    });
+    btn.addEventListener('click', () => {
+      selectedMajorGrid = v;
+      majorGridCustom.style.display = v === 'custom' ? 'inline' : 'none';
+      // 更新选中态
+      majorGridPalette.querySelectorAll('span').forEach((b, j) => {
+        const pv = MAJOR_GRID_PRESETS[j];
+        b.style.border = '2px solid ' + (pv === v ? '#6366f1' : '#e2e8f0');
+        b.style.background = pv === v ? '#eef2ff' : '#fff';
+        b.style.color = pv === v ? '#6366f1' : '#64748b';
+      });
+      if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
+    });
+    majorGridPalette.appendChild(btn);
   });
+
+  function getMajorGridN() {
+    return selectedMajorGrid === 'custom'
+      ? (parseInt(majorGridCustom.value) || 0)
+      : selectedMajorGrid;
+  }
+
   majorGridCustom.addEventListener('input', () => {
     if (currentGridData) renderGrid(currentGridData.grid, currentGridData.grid.length);
   });
@@ -1377,9 +1405,7 @@
     }
     ctx.stroke();
     // 大格粗线
-    let majorN = majorGridSpacing.value === 'custom'
-      ? parseInt(majorGridCustom.value) || 0
-      : parseInt(majorGridSpacing.value);
+    const majorN = getMajorGridN();
     if (majorN > 0 && N >= majorN) {
       ctx.strokeStyle = gridColor;
       ctx.lineWidth = Math.max(2, cellSize > 10 ? 2.5 : 1.5);
