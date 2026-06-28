@@ -1485,27 +1485,29 @@
   // ============ 渲染网格 ============
   function renderGrid(grid, N) {
     const isMobile = window.innerWidth < 768;
-    // 放大显示格子，提高清晰度
+    // 高清渲染：用 devicePixelRatio 避免模糊
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const displayWidth = isMobile ? 600 : 900;
     const displayCellSize = Math.max(12, Math.floor(displayWidth / N));
     const showLabels = N <= 80;
     const labelSize = showLabels ? 32 : 0;
     const gridPx = N * displayCellSize;
-    const canvasW = labelSize + gridPx;
-    const canvasH = labelSize + gridPx;
+    const logicalW = labelSize + gridPx;
+    const logicalH = labelSize + gridPx;
 
     const canvas = gridCanvas;
-    canvas.width = canvasW;
-    canvas.height = canvasH;
-    canvas.style.width = Math.min(canvasW, displayWidth + labelSize) + 'px';
-    canvas.style.height = 'auto';
+    canvas.width = logicalW * dpr;
+    canvas.height = logicalH * dpr;
+    canvas.style.width = logicalW + 'px';
+    canvas.style.height = logicalH + 'px';
 
     const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 高清缩放
     ctx.imageSmoothingEnabled = false;
 
     // 白色背景
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvasW, canvasH);
+    ctx.fillRect(0, 0, logicalW, logicalH);
 
     const ox = labelSize, oy = labelSize;
 
@@ -1526,8 +1528,8 @@
       // 标签区域背景色
       if (borderColor.value !== 'transparent') {
         ctx.fillStyle = borderColor.value;
-        ctx.fillRect(0, 0, canvasW, oy);       // 顶部列号区
-        ctx.fillRect(0, 0, ox, canvasH);        // 左侧行号区
+        ctx.fillRect(0, 0, logicalW, oy);       // 顶部列号区
+        ctx.fillRect(0, 0, ox, logicalH);        // 左侧行号区
       }
       // 标签区分隔线
       ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5;
