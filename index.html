@@ -1181,9 +1181,9 @@
   }
 
   // 改造三个颜色按钮：点击打开色板
-  gridLineColor.addEventListener('click',e=>{e.preventDefault();openSwatch('grid');});
+  gridLineColor.addEventListener('click',()=>openSwatch('grid'));
   majorGridColorBtn.addEventListener('click',()=>openSwatch('major'));
-  borderColor.addEventListener('click',e=>{e.preventDefault();openSwatch('border');});
+  borderColor.addEventListener('click',()=>openSwatch('border'));
 
   // 保留 HSV 入口（长按或双击 + 按钮）
   majorGridColorBtn.addEventListener('dblclick',()=>{
